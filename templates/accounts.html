@@ -12,7 +12,7 @@
             </div>
             <div class="card-body">
                 
-                <!-- Show TradeLocker account selection interface (Multi-account like Traders Impulse) -->
+                <!-- Show TradeLocker account selection interface -->
                 {% if tradelocker_accounts %}
                 <div class="row">
                     <!-- Left Panel: Account Credentials (Read-only display) -->
@@ -20,7 +20,7 @@
                         <div class="credentials-panel">
                             <h5 class="panel-title">
                                 <span class="material-symbols-outlined me-2">login</span>
-                                Account Credentials
+                                Connected Account
                             </h5>
                             
                             <div class="credential-info">
@@ -39,13 +39,6 @@
                                 </div>
                                 
                                 <div class="form-group mb-3">
-                                    <label class="credential-label">PASSWORD</label>
-                                    <div class="credential-value">
-                                        ••••••••••
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group mb-3">
                                     <label class="credential-label">SERVER</label>
                                     <div class="credential-value">
                                         {{ session.tradelocker_login_info.server }}
@@ -53,20 +46,26 @@
                                 </div>
                             </div>
                             
-                            <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="clearTradeLockerSession()">
-                                <span class="material-symbols-outlined me-1">refresh</span>
-                                Connect Different Account
-                            </button>
+                            <form method="POST" action="{{ url_for('clear_tradelocker_session') }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                    <span class="material-symbols-outlined me-1">refresh</span>
+                                    Connect Different Account
+                                </button>
+                            </form>
                         </div>
                     </div>
                     
-                    <!-- Right Panel: Multiple Account Selection (Like Traders Impulse) -->
+                    <!-- Right Panel: Account Selection -->
                     <div class="col-md-7">
                         <div class="selection-panel">
                             <h5 class="panel-title">
                                 <span class="material-symbols-outlined me-2">checklist</span>
-                                Select Accounts
+                                Select Account for Competition
                             </h5>
+                            
+                            <div class="alert alert-info mb-3">
+                                <small><strong>Note:</strong> You can only select one account for the competition. The account with the minimum $100 balance will be eligible.</small>
+                            </div>
                             
                             <form method="POST" id="accountSelectionForm">
                                 <input type="hidden" name="action" value="add_tradelocker_accounts">
@@ -75,14 +74,18 @@
                                     {% for account in tradelocker_accounts %}
                                     <div class="account-item">
                                         <div class="form-check-modern">
-                                            <input class="form-check-input account-checkbox" type="checkbox" 
+                                            <input class="form-check-input account-radio" type="radio" 
                                                    name="selected_accounts" id="account_{{ loop.index }}" 
-                                                   value="{{ account.id }}">
+                                                   value="{{ account.id }}"
+                                                   {% if account.balance >= 100 %}{% else %}disabled{% endif %}>
                                             <label class="form-check-label account-label" for="account_{{ loop.index }}">
                                                 <div class="account-details">
                                                     <div class="account-number">{{ account.id }}</div>
                                                     <div class="account-info">
                                                         {{ account.label }}
+                                                        {% if account.balance < 100 %}
+                                                        <span class="badge bg-warning text-dark ms-2">Below $100 minimum</span>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                             </label>
@@ -91,9 +94,9 @@
                                     {% endfor %}
                                 </div>
                                 
-                                <button type="submit" class="btn btn-success btn-lg w-100 mt-4" id="addAccountsBtn" disabled>
+                                <button type="submit" class="btn btn-success btn-lg w-100 mt-4" id="addAccountBtn" disabled>
                                     <span class="material-symbols-outlined me-1">add_circle</span>
-                                    Add Selected Accounts
+                                    Add Selected Account to Competition
                                 </button>
                             </form>
                         </div>
@@ -113,7 +116,7 @@
                         <div class="d-flex align-items-start">
                             <span class="material-symbols-outlined me-2">warning</span>
                             <div>
-                                <strong>Note:</strong> Make sure you have registered with our broker link and have at least $100 in your account.
+                                <strong>Important:</strong> You must register with our broker link and have at least $100 in your account to participate in the competition.
                             </div>
                         </div>
                     </div>
@@ -127,24 +130,24 @@
                                 <select class="form-control" id="account_type" name="account_type" required>
                                     <option value="">Select Account Type</option>
                                     <option value="demo">Demo Account</option>
-                                    <option value="live">Live Account (Recommended)</option>
+                                    <option value="live">Live Account (Required for Competition)</option>
                                 </select>
                                 <small class="form-text text-muted">Live accounts are required for the main competition</small>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="tl_email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="tl_email" name="tl_email" required 
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" required 
                                        placeholder="your.email@example.com">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="tl_password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="tl_password" name="tl_password" required>
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="tl_server" class="form-label">Server</label>
-                                <input type="text" class="form-control" id="tl_server" name="tl_server" 
+                                <label for="server" class="form-label">Server</label>
+                                <input type="text" class="form-control" id="server" name="server" 
                                        placeholder="Enter server name (e.g., PLEXY-Server01)" required>
                                 <small class="form-text text-muted">Check your broker email for server details</small>
                             </div>
@@ -152,7 +155,7 @@
                         
                         <div class="d-flex justify-content-center mt-4">
                             <button type="submit" class="btn btn-primary btn-lg" id="connectTradeLockerBtn">
-                                <span class="material-symbols-outlined me-1">account_balance</span>
+                                <span class="material-symbols-outlined me-1">sync_alt</span>
                                 Connect to TradeLocker
                             </button>
                         </div>
@@ -165,13 +168,14 @@
                         <div class="d-flex align-items-start">
                             <span class="material-symbols-outlined me-2 mt-1">info</span>
                             <div>
-                                <h6 class="mb-2">Important Instructions:</h6>
+                                <h6 class="mb-2">Competition Rules:</h6>
                                 <ul class="mb-0">
                                     <li>You must register with our broker link to participate</li>
                                     <li>Minimum account balance of $100 required</li>
                                     <li>Only live accounts are eligible for the main competition</li>
-                                    <li>You can add multiple accounts if available</li>
+                                    <li>You can only enter one account per email address</li>
                                     <li>The trader with the highest % gain will win</li>
+                                    <li>You can re-enter with a new account by updating your info</li>
                                 </ul>
                             </div>
                         </div>
@@ -211,16 +215,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Multi-account selection handling (Like Traders Impulse)
-    const accountCheckboxes = document.querySelectorAll('.account-checkbox');
-    const addAccountsBtn = document.getElementById('addAccountsBtn');
+    // Account selection handling (radio buttons for single selection)
+    const accountRadios = document.querySelectorAll('.account-radio');
+    const addAccountBtn = document.getElementById('addAccountBtn');
     
-    if (accountCheckboxes.length > 0 && addAccountsBtn) {
-        accountCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
+    if (accountRadios.length > 0 && addAccountBtn) {
+        accountRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
                 // Enable/disable the add button based on selection
-                const hasSelection = Array.from(accountCheckboxes).some(cb => cb.checked);
-                addAccountsBtn.disabled = !hasSelection;
+                const hasSelection = Array.from(accountRadios).some(r => r.checked);
+                addAccountBtn.disabled = !hasSelection;
                 
                 // Update visual state
                 updateAccountSelection();
@@ -230,13 +234,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Account selection form submission
     const accountSelectionForm = document.getElementById('accountSelectionForm');
-    if (accountSelectionForm && addAccountsBtn) {
+    if (accountSelectionForm && addAccountBtn) {
         accountSelectionForm.addEventListener('submit', function(e) {
-            const selectedCount = Array.from(accountCheckboxes).filter(cb => cb.checked).length;
+            const selectedRadio = document.querySelector('.account-radio:checked');
+            const selectedAccount = selectedRadio ? selectedRadio.closest('.account-item').querySelector('.account-number').textContent : '';
             
-            // Show loading state with count
-            addAccountsBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Adding ${selectedCount} Account(s)...`;
-            addAccountsBtn.disabled = true;
+            // Show loading state
+            addAccountBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Adding Account ${selectedAccount}...`;
+            addAccountBtn.disabled = true;
         });
     }
 });
@@ -244,8 +249,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateAccountSelection() {
     const accountItems = document.querySelectorAll('.account-item');
     accountItems.forEach(item => {
-        const checkbox = item.querySelector('.account-checkbox');
-        if (checkbox && checkbox.checked) {
+        const radio = item.querySelector('.account-radio');
+        if (radio && radio.checked) {
             item.classList.add('selected');
         } else {
             item.classList.remove('selected');
@@ -253,12 +258,7 @@ function updateAccountSelection() {
     });
 }
 
-function clearTradeLockerSession() {
-    // Show loading state
-    window.location.href = '/accounts';
-}
-
-// Add comprehensive styles following Traders Impulse pattern
+// Add comprehensive styles
 document.addEventListener('DOMContentLoaded', function() {
     const style = document.createElement('style');
     style.textContent = `
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: all 0.2s ease;
         }
         
-        .account-item .form-check-modern:hover {
+        .account-item .form-check-modern:hover:not(:has(.account-radio:disabled)) {
             border-color: #007bff;
             background-color: #f8f9ff;
         }
@@ -334,6 +334,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .account-item.selected .form-check-modern {
             border-color: #28a745;
             background-color: #f8fff9;
+        }
+        
+        .account-item .form-check-modern:has(.account-radio:disabled) {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         
         .account-item .form-check-input {
@@ -376,8 +383,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         /* Form styles */
         .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
         
         .form-check-input:checked {
@@ -391,13 +398,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         /* Button styles */
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background-color: #007bff;
+            border-color: #007bff;
         }
         
-        .btn-primary:hover {
-            background-color: rgba(16, 185, 129, 0.9);
-            border-color: rgba(16, 185, 129, 0.9);
+        .btn-primary:hover:not(:disabled) {
+            background-color: #0056b3;
+            border-color: #0056b3;
         }
         
         .btn-success {
@@ -414,6 +421,11 @@ document.addEventListener('DOMContentLoaded', function() {
             background-color: #6c757d;
             border-color: #6c757d;
             opacity: 0.7;
+        }
+        
+        /* Badge styles */
+        .badge {
+            font-size: 0.7rem;
         }
         
         /* Loading spinner */
