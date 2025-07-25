@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Trading Competition{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <span class="material-symbols-outlined text-danger mb-3" style="font-size: 64px;">error</span>
+                <h3 class="text-gradient-primary mb-3">Oops! Something went wrong</h3>
+                <p class="text-muted mb-4">{{ error if error else "An unexpected error occurred. Please try again." }}</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button onclick="history.back()" class="btn btn-outline-primary">
+                        <span class="material-symbols-outlined me-1">arrow_back</span>
+                        Go Back
+                    </button>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <span class="material-symbols-outlined me-1">home</span>
+                        Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
