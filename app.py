@@ -376,7 +376,6 @@ def handle_tradelocker_connection():
         # Get JWT token
         response = requests.post(auth_url, json=auth_payload, timeout=30)
         
-        # FIX: Accept both 200 and 201 status codes as successful
         if not (200 <= response.status_code < 300):
             flash(f"Authentication failed: {response.status_code} - {response.text}", "error")
             return redirect(url_for('accounts'))
@@ -392,7 +391,7 @@ def handle_tradelocker_connection():
         session['tradelocker_token'] = access_token
         session['tradelocker_env'] = account_type
         
-        # Calculate token expiry (TradeLocker JWT tokens typically expire in 24 hours)
+        # Calculate token expiry from JWT
         try:
             import base64
             import json
@@ -429,51 +428,95 @@ def handle_tradelocker_connection():
             'env': account_type
         }
         
-        # Get all accounts using direct API call
-        accounts_url = f"{base_url}/backend-api/trade/accounts"
+        # Get all accounts using the correct TradeLocker API endpoint
+        all_accounts_url = f"{base_url}/backend-api/auth/jwt/all-accounts"
         headers = {
             'Authorization': f'Bearer {access_token}',
             'accept': 'application/json'
         }
         
-        accounts_response = requests.get(accounts_url, headers=headers, timeout=30)
+        logger.info(f"Fetching accounts from: {all_accounts_url}")
+        accounts_response = requests.get(all_accounts_url, headers=headers, timeout=30)
         
-        # FIX: Also apply the same fix for accounts API call
         if not (200 <= accounts_response.status_code < 300):
             flash(f"Failed to fetch accounts: {accounts_response.status_code} - {accounts_response.text}", "error")
             return redirect(url_for('accounts'))
         
         accounts_data = accounts_response.json()
-        logger.info(f"Accounts API response: {accounts_data}")
+        logger.info(f"All accounts API response: {accounts_data}")
         
         # Format accounts for display
         formatted_accounts = []
-        accounts_list = accounts_data.get('accounts', [])
+        
+        # Handle different possible response structures
+        accounts_list = []
+        if isinstance(accounts_data, list):
+            accounts_list = accounts_data
+        elif 'accounts' in accounts_data:
+            accounts_list = accounts_data['accounts']
+        elif 'data' in accounts_data:
+            accounts_list = accounts_data['data']
+        else:
+            # If the response structure is different, log it and try to use the whole response
+            logger.warning(f"Unexpected accounts response structure: {accounts_data}")
+            if isinstance(accounts_data, dict):
+                # Try to find any key that contains account-like data
+                for key, value in accounts_data.items():
+                    if isinstance(value, list) and value:
+                        accounts_list = value
+                        break
         
         for account in accounts_list:
-            account_id = account.get('id')
-            account_name = account.get('name', '')
-            account_balance = account.get('accountBalance', '0.00')
-            account_currency = account.get('currency', 'USD')
-            account_num = account.get('accNum', '')
+            # Extract account information - handle different possible field names
+            account_id = (account.get('id') or 
+                         account.get('accountId') or 
+                         account.get('accNum') or 
+                         account.get('accountNumber'))
+            
+            account_name = (account.get('name') or 
+                           account.get('accountName') or 
+                           account.get('label') or 
+                           f"Account {account_id}")
+            
+            account_balance = (account.get('accountBalance') or 
+                              account.get('balance') or 
+                              account.get('equity') or 
+                              '0.00')
+            
+            account_currency = (account.get('currency') or 
+                               account.get('currencyCode') or 
+                               'USD')
+            
+            account_num = (account.get('accNum') or 
+                          account.get('accountNumber') or 
+                          account.get('number') or 
+                          account_id)
+            
+            # Additional account details that might be useful
+            account_type_detail = account.get('type', '')
+            account_server = account.get('server', '')
             
             if account_id:
                 formatted_accounts.append({
-                    'id': account_id,
-                    'name': account_name,
-                    'balance': account_balance,
-                    'currency': account_currency,
-                    'accNum': account_num,
-                    'label': f"{account_name} ({account_currency} {account_balance})"
+                    'id': str(account_id),
+                    'name': str(account_name),
+                    'balance': str(account_balance),
+                    'currency': str(account_currency),
+                    'accNum': str(account_num),
+                    'type': str(account_type_detail),
+                    'server': str(account_server),
+                    'label': f"{account_name} - {account_num} ({account_currency} {account_balance})"
                 })
         
         # Store accounts in session
         session['tradelocker_accounts'] = formatted_accounts
         
         if formatted_accounts:
-            flash(f"Successfully found {len(formatted_accounts)} TradeLocker account(s). Please select one below.", "success")
+            flash(f"Successfully found {len(formatted_accounts)} TradeLocker account(s). Please select one below to sync.", "success")
+            logger.info(f"Found {len(formatted_accounts)} accounts to display")
         else:
             flash("No TradeLocker accounts found for this user", "error")
+            logger.warning("No accounts found in API response")
             
         return redirect(url_for('accounts'))
         
@@ -520,24 +563,27 @@ def handle_tradelocker_account_selection():
         # Delete existing account for this user
         cursor.execute("DELETE FROM trading_accounts WHERE user_id = %s", (current_user.id,))
         
-        # Insert new TradeLocker account
+        # Insert new TradeLocker account with all the details
         login_info = session.get('tradelocker_login_info', {})
+        
         cursor.execute("""
             INSERT INTO trading_accounts 
             (user_id, account_type, account_id, account_name, starting_balance, current_balance, 
-             tl_email, tl_server, account_number, account_env) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+             tl_email, tl_server, account_number, account_env, created_at, last_updated) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             current_user.id, 
             'tradelocker', 
             selected_account['id'],
             selected_account['name'],
-            float(selected_account['balance']),
-            float(selected_account['balance']),
+            float(selected_account['balance']) if selected_account['balance'] else 0.0,
+            float(selected_account['balance']) if selected_account['balance'] else 0.0,
             login_info.get('email', ''),
             login_info.get('server', ''),
             selected_account['accNum'],
-            login_info.get('env', 'demo')
+            login_info.get('env', 'demo'),
+            datetime.now(),
+            datetime.now()
         ))
         
         conn.commit()
@@ -549,13 +595,16 @@ def handle_tradelocker_account_selection():
         session.pop('tradelocker_token', None)
         session.pop('tradelocker_env', None)
         session.pop('tradelocker_login_info', None)
+        session.pop('tradelocker_token_expiry', None)
         
-        flash('TradeLocker account added successfully!', 'success')
+        flash(f'TradeLocker account "{selected_account["name"]}" (#{selected_account["accNum"]}) synced successfully!', 'success')
+        logger.info(f"Successfully synced TradeLocker account {selected_account['accNum']} for user {current_user.id}")
+        
         return redirect(url_for('dashboard'))
         
     except Exception as e:
         logger.error(f"TradeLocker account selection error: {str(e)}")
-        flash(f"Error adding TradeLocker account: {str(e)}", "error")
+        flash(f"Error syncing TradeLocker account: {str(e)}", "error")
         return redirect(url_for('accounts'))
 
 def handle_regular_account_setup():
