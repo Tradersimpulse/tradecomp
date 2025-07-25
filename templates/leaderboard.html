@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - Trading Competition{% endblock %}
+
+{% block content %}
+<!-- Competition Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="text-gradient-primary mb-2">
+                            <span class="material-symbols-outlined me-2">leaderboard</span>
+                            Competition Leaderboard
+                        </h3>
+                        {% if start_date and end_date %}
+                        <p class="text-muted mb-0">
+                            Competition Period: {{ start_date.strftime('%B %d') }} - {{ end_date.strftime('%B %d, %Y') }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="d-flex align-items-center justify-content-md-end">
+                            <span class="material-symbols-outlined text-primary me-2">groups</span>
+                            <span class="text-muted">{{ leaderboard|length }} Participants</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if leaderboard %}
+<!-- Top 3 Podium -->
+{% set top_three = leaderboard[:3] %}
+{% if top_three|length >= 3 %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="text-center mb-4">🏆 Top Performers 🏆</h5>
+                <div class="row justify-content-center">
+                    <!-- 2nd Place -->
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="podium-card" style="background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%); padding: 1.5rem; border-radius: 16px;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🥈</div>
+                            <h5 class="text-white mb-1">{{ top_three[1].username }}</h5>
+                            <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[1].percentage_change) }}%</h4>
+                            <small class="text-white-50">${{ "%.2f"|format(top_three[1].profit) }} profit</small>
+                        </div>
+                    </div>
+                    
+                    <!-- 1st Place -->
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="podium-card" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 2rem; border-radius: 16px; transform: scale(1.1);">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👑</div>
+                            <h4 class="text-white mb-1">{{ top_three[0].username }}</h4>
+                            <h3 class="text-white mb-0">+{{ "%.2f"|format(top_three[0].percentage_change) }}%</h3>
+                            <small class="text-white-50">${{ "%.2f"|format(top_three[0].profit) }} profit</small>
+                        </div>
+                    </div>
+                    
+                    <!-- 3rd Place -->
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="podium-card" style="background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%); padding: 1.5rem; border-radius: 16px;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🥉</div>
+                            <h5 class="text-white mb-1">{{ top_three[2].username }}</h5>
+                            <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[2].percentage_change) }}%</h4>
+                            <small class="text-white-50">${{ "%.2f"|format(top_three[2].profit) }} profit</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Full Leaderboard Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Full Rankings</h5>
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshLeaderboard()">
+                    <span class="material-symbols-outlined me-1">refresh</span>
+                    Refresh
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th width="10%">Rank</th>
+                                <th width="25%">Trader</th>
+                                <th width="15%">Starting Balance</th>
+                                <th width="15%">Current Balance</th>
+                                <th width="15%">Profit/Loss</th>
+                                <th width="15%">Return %</th>
+                                <th width="5%">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trader in leaderboard %}
+                            <tr class="{% if trader.rank <= 3 %}table-warning{% endif %} {% if current_user.is_authenticated and trader.username == current_user.username %}table-info{% endif %}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if trader.rank == 1 %}
+                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">👑</span>
+                                        {% elif trader.rank == 2 %}
+                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">🥈</span>
+                                        {% elif trader.rank == 3 %}
+                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">🥉</span>
+                                        {% endif %}
+                                        <strong>#{{ trader.rank }}</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                            <span class="text-white fw-bold">{{ trader.username[0].upper() }}</span>
+                                        </div>
+                                        <div>
+                                            <strong>{{ trader.username }}</strong>
+                                            {% if current_user.is_authenticated and trader.username == current_user.username %}
+                                                <span class="badge bg-info ms-1">You</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>${{ "%.2f"|format(trader.starting_balance) }}</td>
+                                <td>${{ "%.2f"|format(trader.current_balance) }}</td>
+                                <td class="{% if trader.profit >= 0 %}positive{% else %}negative{% endif %}">
+                                    {% if trader.profit >= 0 %}+{% endif %} ${{ "%.2f"|format(trader.profit) }}
+                                </td>
+                                <td class="{% if trader.percentage_change >= 0 %}positive{% else %}negative{% endif %}">
+                                    <strong>
+                                        {% if trader.percentage_change >= 0 %}+{% endif %}{{ "%.2f"|format(trader.percentage_change) }}%
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if trader.is_active else 'secondary' }}">
+                                        {% if trader.is_active %}
+                                            <span class="material-symbols-outlined" style="font-size: 12px;">check_circle</span>
+                                        {% else %}
+                                            <span class="material-symbols-outlined" style="font-size: 12px;">pause_circle</span>
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">groups</span>
+                <h5 class="text-muted mb-1">Total Participants</h5>
+                <h3 class="text-gradient-primary mb-0">{{ leaderboard|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">trending_up</span>
+                <h5 class="text-muted mb-1">Best Performance</h5>
+                <h3 class="positive mb-0">+{{ "%.2f"|format(leaderboard[0].percentage_change) }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set total_profit = leaderboard | sum(attribute='profit') %}
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">attach_money</span>
+                <h5 class="text-muted mb-1">Total Profits</h5>
+                <h3 class="{% if total_profit >= 0 %}positive{% else %}negative{% endif %} mb-0">
+                    {% if total_profit >= 0 %}+{% endif %} ${{ "%.2f"|format(total_profit) }}
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set profitable_traders = leaderboard | selectattr('profit', '>', 0) | list | length %}
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">pie_chart</span>
+                <h5 class="text-muted mb-1">Profitable Traders</h5>
+                <h3 class="positive mb-0">{{ profitable_traders }}/{{ leaderboard|length }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <span class="material-symbols-outlined text-muted mb-3" style="font-size: 64px;">leaderboard</span>
+                <h3 class="text-muted mb-3">No Participants Yet</h3>
+                <p class="text-muted mb-4">Be the first to join the trading competition!</p>
+                <a href="{{ url_for('accounts') }}" class="btn btn-primary">
+                    <span class="material-symbols-outlined me-2">add</span>
+                    Join Competition
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshLeaderboard() {
+    location.reload();
+}
+
+// Auto-refresh every 5 minutes
+setInterval(refreshLeaderboard, 300000);
+
+// Add custom styles for avatar
+document.addEventListener('DOMContentLoaded', function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            font-size: 0.875rem;
+        }
+        .podium-card {
+            transition: transform 0.2s ease;
+        }
+        .podium-card:hover {
+            transform: scale(1.05) !important;
+        }
+        .table-warning {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+        }
+        .table-info {
+            background-color: rgba(13, 202, 240, 0.1) !important;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}
