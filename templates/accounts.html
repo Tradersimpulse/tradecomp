@@ -11,8 +11,46 @@
                 <p class="text-muted mb-0">Connect your trading account to join the competition</p>
             </div>
             <div class="card-body">
+                
+                <!-- Show TradeLocker accounts if available -->
+                {% if tradelocker_accounts %}
+                <div id="tradelockerAccountSelection" class="mb-4">
+                    <h5 class="text-gradient-primary mb-3">Select TradeLocker Account</h5>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="add_tradelocker_account">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Available Accounts</label>
+                            {% for account in tradelocker_accounts %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="selected_account" 
+                                       id="account_{{ account.id }}" value="{{ account.id }}" required>
+                                <label class="form-check-label" for="account_{{ account.id }}">
+                                    <strong>{{ account.name }}</strong><br>
+                                    <small class="text-muted">
+                                        Account: {{ account.accNum }} | Balance: {{ account.currency }} {{ account.balance }}
+                                    </small>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearTradeLockerSession()">
+                                <span class="material-symbols-outlined me-1">arrow_back</span>
+                                Back
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-symbols-outlined me-1">save</span>
+                                Add Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                
                 <!-- Account Type Selection -->
-                <div class="mb-4">
+                <div class="mb-4" id="accountTypeSelection">
                     <label class="form-label">Select Trading Platform</label>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -36,42 +74,57 @@
                     </div>
                 </div>
 
-                <!-- Account Forms -->
-                <form method="POST" id="accountForm" style="display: none;">
-                    <input type="hidden" name="account_type" id="accountType" value="">
-                    
-                    <!-- TradeLocker Form -->
-                    <div id="tradelockerForm" class="account-form" style="display: none;">
-                        <h5 class="text-gradient-primary mb-3">TradeLocker Account Details</h5>
+                <!-- TradeLocker Connection Form -->
+                <div id="tradelockerConnectionForm" class="account-form" style="display: none;">
+                    <h5 class="text-gradient-primary mb-3">Connect to TradeLocker</h5>
+                    <form method="POST" id="tradelockerForm">
+                        <input type="hidden" name="action" value="connect_tradelocker">
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="tl_email" class="form-label">Email</label>
+                                <label for="account_type" class="form-label">Account Type</label>
+                                <select class="form-control" id="account_type" name="account_type" required>
+                                    <option value="">Select Account Type</option>
+                                    <option value="demo">Demo Account</option>
+                                    <option value="live">Live Account</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tl_email" class="form-label">Email Address</label>
                                 <input type="email" class="form-control" id="tl_email" name="tl_email" required>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="tl_password" class="form-label">Password</label>
                                 <input type="password" class="form-control" id="tl_password" name="tl_password" required>
                             </div>
-                        </div>
-                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="tl_server" class="form-label">Server</label>
-                                <select class="form-control" id="tl_server" name="tl_server" required>
-                                    <option value="">Select Server</option>
-                                    <option value="live">Live Server</option>
-                                    <option value="demo">Demo Server</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="accnum" class="form-label">Account Number</label>
-                                <input type="text" class="form-control" id="accnum" name="accnum" required>
+                                <input type="text" class="form-control" id="tl_server" name="tl_server" 
+                                       placeholder="Enter server name" required>
                             </div>
                         </div>
-                    </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                <span class="material-symbols-outlined me-1">arrow_back</span>
+                                Back
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="connectTradeLockerBtn">
+                                <span class="material-symbols-outlined me-1">link</span>
+                                Connect & Fetch Accounts
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
-                    <!-- MT5 Form -->
-                    <div id="mt5Form" class="account-form" style="display: none;">
-                        <h5 class="text-gradient-primary mb-3">MetaTrader 5 Account Details</h5>
+                <!-- MT5 Form -->
+                <div id="mt5Form" class="account-form" style="display: none;">
+                    <h5 class="text-gradient-primary mb-3">MetaTrader 5 Account Details</h5>
+                    <form method="POST" id="mt5AccountForm">
+                        <input type="hidden" name="account_type" value="mt5">
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="mt5_account" class="form-label">Account Number</label>
@@ -85,23 +138,26 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="mt5_server" class="form-label">Server</label>
-                                <input type="text" class="form-control" id="mt5_server" name="mt5_server" required placeholder="e.g., PlexyTrade-Live">
+                                <select class="form-control" id="mt5_server" name="mt5_server" required>
+                                    <option value="">Select Server</option>
+                                    <option value="PlexyTrade-Server01">PlexyTrade-Server01</option>
+                                    <option value="TradeSmart-Server01">TradeSmart-Server01</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
-                            <span class="material-symbols-outlined me-1">arrow_back</span>
-                            Back
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <span class="material-symbols-outlined me-1">save</span>
-                            Save Account
-                        </button>
-                    </div>
-                </form>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                <span class="material-symbols-outlined me-1">arrow_back</span>
+                                Back
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-symbols-outlined me-1">save</span>
+                                Save Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
                 <!-- Instructions -->
                 <div id="instructions" class="mt-4">
@@ -127,6 +183,8 @@
                         </a>
                     </div>
                 </div>
+                
+                {% endif %}
             </div>
         </div>
     </div>
@@ -137,11 +195,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const accountTypeCards = document.querySelectorAll('.account-type-card');
-    const accountForm = document.getElementById('accountForm');
-    const accountType = document.getElementById('accountType');
-    const tradelockerForm = document.getElementById('tradelockerForm');
+    const tradelockerConnectionForm = document.getElementById('tradelockerConnectionForm');
     const mt5Form = document.getElementById('mt5Form');
     const instructions = document.getElementById('instructions');
+    const accountTypeSelection = document.getElementById('accountTypeSelection');
 
     // Account type selection
     accountTypeCards.forEach(card => {
@@ -154,45 +211,64 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add active state to selected card
             this.classList.add('border-primary');
             
-            // Show appropriate form
-            accountType.value = type;
-            accountForm.style.display = 'block';
+            // Hide instructions and account type selection
             instructions.style.display = 'none';
+            accountTypeSelection.style.display = 'none';
             
             if (type === 'tradelocker') {
-                tradelockerForm.style.display = 'block';
+                tradelockerConnectionForm.style.display = 'block';
                 mt5Form.style.display = 'none';
-                
-                // Set required attributes
-                document.querySelectorAll('#tradelockerForm [required]').forEach(input => {
-                    input.required = true;
-                });
-                document.querySelectorAll('#mt5Form [required]').forEach(input => {
-                    input.required = false;
-                });
             } else {
                 mt5Form.style.display = 'block';
-                tradelockerForm.style.display = 'none';
-                
-                // Set required attributes
-                document.querySelectorAll('#mt5Form [required]').forEach(input => {
-                    input.required = true;
-                });
-                document.querySelectorAll('#tradelockerForm [required]').forEach(input => {
-                    input.required = false;
-                });
+                tradelockerConnectionForm.style.display = 'none';
             }
         });
     });
+
+    // TradeLocker form submission with loading state
+    const tradelockerForm = document.getElementById('tradelockerForm');
+    const connectBtn = document.getElementById('connectTradeLockerBtn');
+    
+    if (tradelockerForm) {
+        tradelockerForm.addEventListener('submit', function(e) {
+            // Show loading state
+            connectBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Connecting...';
+            connectBtn.disabled = true;
+        });
+    }
 });
 
 function resetForm() {
-    document.getElementById('accountForm').style.display = 'none';
+    // Hide all forms
+    document.getElementById('tradelockerConnectionForm').style.display = 'none';
+    document.getElementById('mt5Form').style.display = 'none';
+    
+    // Show instructions and account type selection
     document.getElementById('instructions').style.display = 'block';
+    document.getElementById('accountTypeSelection').style.display = 'block';
+    
+    // Reset card selection
     document.querySelectorAll('.account-type-card').forEach(card => {
         card.classList.remove('border-primary');
     });
-    document.getElementById('accountForm').reset();
+    
+    // Reset forms
+    document.getElementById('tradelockerForm').reset();
+    document.getElementById('mt5AccountForm').reset();
+    
+    // Reset button state
+    const connectBtn = document.getElementById('connectTradeLockerBtn');
+    connectBtn.innerHTML = '<span class="material-symbols-outlined me-1">link</span>Connect & Fetch Accounts';
+    connectBtn.disabled = false;
+}
+
+function clearTradeLockerSession() {
+    // Make an AJAX call to clear the session
+    fetch('/accounts', {
+        method: 'GET',
+    }).then(() => {
+        window.location.reload();
+    });
 }
 
 // Add hover effects to account type cards
@@ -211,6 +287,36 @@ document.addEventListener('DOMContentLoaded', function() {
         .account-type-card.border-primary {
             border-color: var(--primary-color) !important;
             background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-label {
+            cursor: pointer;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            display: block;
+        }
+        
+        .form-check-label:hover {
+            background-color: #f8f9fa;
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-input:checked + .form-check-label {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
         }
     `;
     document.head.appendChild(style);
