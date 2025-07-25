@@ -4,7 +4,21 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-8 mx-auto">
+    <div class="col-md-10 mx-auto">
+        
+        <!-- Success Alert (shown when accounts are found) -->
+        {% if tradelocker_accounts %}
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <span class="material-symbols-outlined me-2">check_circle</span>
+                <div>
+                    <strong>Successfully found {{ tradelocker_accounts|length }} TradeLocker account(s).</strong> Please select one below to sync.
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
         <div class="card">
             <div class="card-header">
                 <h4 class="text-gradient-primary mb-0">Trading Account Setup</h4>
@@ -12,99 +26,98 @@
             </div>
             <div class="card-body">
                 
-                <!-- Show TradeLocker accounts if available -->
+                <!-- Show TradeLocker account selection interface -->
                 {% if tradelocker_accounts %}
-                <div id="tradelockerAccountSelection" class="mb-4">
-                    <h5 class="text-gradient-primary mb-3">
-                        <span class="material-symbols-outlined me-2">account_balance</span>
-                        Select TradeLocker Account to Sync
-                    </h5>
-                    
-                    <div class="alert alert-success mb-4">
-                        <div class="d-flex align-items-start">
-                            <span class="material-symbols-outlined me-2">check_circle</span>
-                            <div>
-                                <strong>Connection Successful!</strong><br>
-                                Found {{ tradelocker_accounts|length }} TradeLocker account(s). Please select which account you want to sync with the competition.
+                <div class="row">
+                    <!-- Left Panel: Account Credentials (Read-only display) -->
+                    <div class="col-md-5">
+                        <div class="credentials-panel">
+                            <h5 class="panel-title">
+                                <span class="material-symbols-outlined me-2">login</span>
+                                Account Credentials
+                            </h5>
+                            
+                            <div class="credential-info">
+                                <div class="form-group mb-3">
+                                    <label class="credential-label">ACCOUNT TYPE</label>
+                                    <div class="credential-value">
+                                        {{ session.tradelocker_login_info.env|title }} Account
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label class="credential-label">EMAIL ADDRESS</label>
+                                    <div class="credential-value">
+                                        {{ session.tradelocker_login_info.email }}
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label class="credential-label">PASSWORD</label>
+                                    <div class="credential-value">
+                                        ••••••••••
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label class="credential-label">SERVER</label>
+                                    <div class="credential-value">
+                                        {{ session.tradelocker_login_info.server }}
+                                    </div>
+                                </div>
                             </div>
+                            
+                            <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="clearTradeLockerSession()">
+                                <span class="material-symbols-outlined me-1">refresh</span>
+                                Connect Different Account
+                            </button>
                         </div>
                     </div>
                     
-                    <form method="POST">
-                        <input type="hidden" name="action" value="add_tradelocker_account">
-                        
-                        <div class="row">
-                            {% for account in tradelocker_accounts %}
-                            <div class="col-md-6 mb-3">
-                                <div class="account-selection-card">
-                                    <input class="form-check-input" type="radio" name="selected_account" 
-                                           id="account_{{ account.id }}" value="{{ account.id }}" required>
-                                    <label class="form-check-label account-card-label" for="account_{{ account.id }}">
-                                        <div class="card border-2 h-100">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-start">
-                                                    <span class="material-symbols-outlined text-primary me-3 mt-1">trending_up</span>
-                                                    <div class="flex-grow-1">
-                                                        <h6 class="card-title mb-2 text-dark">{{ account.name }}</h6>
-                                                        <div class="account-details">
-                                                            <div class="detail-row">
-                                                                <span class="detail-label">Account #:</span>
-                                                                <span class="detail-value">{{ account.accNum }}</span>
-                                                            </div>
-                                                            <div class="detail-row">
-                                                                <span class="detail-label">Balance:</span>
-                                                                <span class="detail-value text-success">
-                                                                    <strong>{{ account.currency }} {{ account.balance }}</strong>
-                                                                </span>
-                                                            </div>
-                                                            {% if account.type %}
-                                                            <div class="detail-row">
-                                                                <span class="detail-label">Type:</span>
-                                                                <span class="detail-value">{{ account.type }}</span>
-                                                            </div>
-                                                            {% endif %}
-                                                            {% if account.server %}
-                                                            <div class="detail-row">
-                                                                <span class="detail-label">Server:</span>
-                                                                <span class="detail-value">{{ account.server }}</span>
-                                                            </div>
-                                                            {% endif %}
-                                                        </div>
+                    <!-- Right Panel: Account Selection -->
+                    <div class="col-md-7">
+                        <div class="selection-panel">
+                            <h5 class="panel-title">
+                                <span class="material-symbols-outlined me-2">account_balance</span>
+                                Select Accounts
+                            </h5>
+                            
+                            <form method="POST" id="accountSelectionForm">
+                                <input type="hidden" name="action" value="add_tradelocker_account">
+                                
+                                <div class="accounts-list">
+                                    {% for account in tradelocker_accounts %}
+                                    <div class="account-item">
+                                        <div class="form-check">
+                                            <input class="form-check-input account-checkbox" type="radio" 
+                                                   name="selected_account" id="account_{{ loop.index }}" 
+                                                   value="{{ account.id }}" required>
+                                            <label class="form-check-label account-label" for="account_{{ loop.index }}">
+                                                <div class="account-details">
+                                                    <div class="account-number">{{ account.accNum }}</div>
+                                                    <div class="account-info">
+                                                        - {{ account.name or 'PLEXY' }}#{{ account.id[:20] }}...
+                                                        <span class="account-balance">({{ account.currency }} {{ account.balance }})</span>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </label>
                                         </div>
-                                    </label>
+                                    </div>
+                                    {% endfor %}
                                 </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <button type="button" class="btn btn-outline-secondary" onclick="clearTradeLockerSession()">
-                                <span class="material-symbols-outlined me-1">arrow_back</span>
-                                Back to Platform Selection
-                            </button>
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <span class="material-symbols-outlined me-1">sync</span>
-                                Sync Selected Account
-                            </button>
-                        </div>
-                    </form>
-                    
-                    <div class="alert alert-info mt-4">
-                        <div class="d-flex align-items-start">
-                            <span class="material-symbols-outlined me-2">info</span>
-                            <div>
-                                <strong>Important:</strong> This will sync the selected account with the trading competition. 
-                                Your account balance and trading performance will be tracked for the leaderboard.
-                            </div>
+                                
+                                <button type="submit" class="btn btn-success btn-lg w-100 mt-4" id="addAccountBtn" disabled>
+                                    <span class="material-symbols-outlined me-1">add_circle</span>
+                                    Add Selected Accounts
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
+                
                 {% else %}
                 
-                <!-- Account Type Selection -->
+                <!-- Initial Platform Selection -->
                 <div class="mb-4" id="accountTypeSelection">
                     <label class="form-label">Select Trading Platform</label>
                     <div class="row">
@@ -184,7 +197,7 @@
                             </button>
                             <button type="submit" class="btn btn-primary btn-lg" id="connectTradeLockerBtn">
                                 <span class="material-symbols-outlined me-1">link</span>
-                                Connect & Fetch Accounts
+                                Connect to TradeLocker
                             </button>
                         </div>
                     </form>
@@ -280,6 +293,7 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Account type selection for initial platform choice
     const accountTypeCards = document.querySelectorAll('.account-type-card');
     const tradelockerConnectionForm = document.getElementById('tradelockerConnectionForm');
     const mt5Form = document.getElementById('mt5Form');
@@ -298,15 +312,15 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('border-primary', 'selected');
             
             // Hide instructions and account type selection
-            instructions.style.display = 'none';
-            accountTypeSelection.style.display = 'none';
+            if (instructions) instructions.style.display = 'none';
+            if (accountTypeSelection) accountTypeSelection.style.display = 'none';
             
             if (type === 'tradelocker') {
-                tradelockerConnectionForm.style.display = 'block';
-                mt5Form.style.display = 'none';
+                if (tradelockerConnectionForm) tradelockerConnectionForm.style.display = 'block';
+                if (mt5Form) mt5Form.style.display = 'none';
             } else {
-                mt5Form.style.display = 'block';
-                tradelockerConnectionForm.style.display = 'none';
+                if (mt5Form) mt5Form.style.display = 'block';
+                if (tradelockerConnectionForm) tradelockerConnectionForm.style.display = 'none';
             }
         });
     });
@@ -315,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tradelockerForm = document.getElementById('tradelockerForm');
     const connectBtn = document.getElementById('connectTradeLockerBtn');
     
-    if (tradelockerForm) {
+    if (tradelockerForm && connectBtn) {
         tradelockerForm.addEventListener('submit', function(e) {
             // Show loading state
             connectBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Connecting...';
@@ -327,31 +341,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Account selection radio button handling
-    const accountRadios = document.querySelectorAll('input[name="selected_account"]');
-    accountRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Remove selected class from all account cards
-            document.querySelectorAll('.account-selection-card').forEach(card => {
-                card.classList.remove('selected');
+    // Account selection handling
+    const accountCheckboxes = document.querySelectorAll('.account-checkbox');
+    const addAccountBtn = document.getElementById('addAccountBtn');
+    
+    if (accountCheckboxes.length > 0 && addAccountBtn) {
+        accountCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Enable/disable the add button based on selection
+                const hasSelection = Array.from(accountCheckboxes).some(cb => cb.checked);
+                addAccountBtn.disabled = !hasSelection;
+                
+                // Update visual state
+                updateAccountSelection();
             });
-            
-            // Add selected class to the parent card
-            if (this.checked) {
-                this.closest('.account-selection-card').classList.add('selected');
-            }
         });
-    });
+    }
+
+    // Account selection form submission
+    const accountSelectionForm = document.getElementById('accountSelectionForm');
+    if (accountSelectionForm && addAccountBtn) {
+        accountSelectionForm.addEventListener('submit', function(e) {
+            // Show loading state
+            addAccountBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding Account...';
+            addAccountBtn.disabled = true;
+        });
+    }
 });
+
+function updateAccountSelection() {
+    const accountItems = document.querySelectorAll('.account-item');
+    accountItems.forEach(item => {
+        const checkbox = item.querySelector('.account-checkbox');
+        if (checkbox && checkbox.checked) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
 
 function resetForm() {
     // Hide all forms
-    document.getElementById('tradelockerConnectionForm').style.display = 'none';
-    document.getElementById('mt5Form').style.display = 'none';
+    const tradelockerConnectionForm = document.getElementById('tradelockerConnectionForm');
+    const mt5Form = document.getElementById('mt5Form');
+    const instructions = document.getElementById('instructions');
+    const accountTypeSelection = document.getElementById('accountTypeSelection');
+    
+    if (tradelockerConnectionForm) tradelockerConnectionForm.style.display = 'none';
+    if (mt5Form) mt5Form.style.display = 'none';
     
     // Show instructions and account type selection
-    document.getElementById('instructions').style.display = 'block';
-    document.getElementById('accountTypeSelection').style.display = 'block';
+    if (instructions) instructions.style.display = 'block';
+    if (accountTypeSelection) accountTypeSelection.style.display = 'block';
     
     // Reset card selection
     document.querySelectorAll('.account-type-card').forEach(card => {
@@ -359,50 +401,148 @@ function resetForm() {
     });
     
     // Reset forms
-    if (document.getElementById('tradelockerForm')) {
-        document.getElementById('tradelockerForm').reset();
+    const tradelockerForm = document.getElementById('tradelockerForm');
+    const mt5AccountForm = document.getElementById('mt5AccountForm');
+    
+    if (tradelockerForm) {
+        tradelockerForm.reset();
         
         // Re-enable form inputs
-        const inputs = document.getElementById('tradelockerForm').querySelectorAll('input, select');
+        const inputs = tradelockerForm.querySelectorAll('input, select');
         inputs.forEach(input => input.disabled = false);
     }
     
-    if (document.getElementById('mt5AccountForm')) {
-        document.getElementById('mt5AccountForm').reset();
+    if (mt5AccountForm) {
+        mt5AccountForm.reset();
     }
     
     // Reset button state
     const connectBtn = document.getElementById('connectTradeLockerBtn');
     if (connectBtn) {
-        connectBtn.innerHTML = '<span class="material-symbols-outlined me-1">link</span>Connect & Fetch Accounts';
+        connectBtn.innerHTML = '<span class="material-symbols-outlined me-1">link</span>Connect to TradeLocker';
         connectBtn.disabled = false;
     }
 }
 
 function clearTradeLockerSession() {
     // Show loading state
-    const backBtn = event.target;
-    const originalContent = backBtn.innerHTML;
-    backBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
-    backBtn.disabled = true;
-    
-    // Make an AJAX call to clear the session
-    fetch('/accounts', {
-        method: 'GET',
-    }).then(() => {
-        window.location.reload();
-    }).catch(() => {
-        // Reset button state on error
-        backBtn.innerHTML = originalContent;
-        backBtn.disabled = false;
-    });
+    window.location.href = '/accounts';
 }
 
-// Add all the necessary styles
+// Add comprehensive styles
 document.addEventListener('DOMContentLoaded', function() {
     const style = document.createElement('style');
     style.textContent = `
-        /* Account type card styles */
+        /* Main container styles */
+        .credentials-panel, .selection-panel {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            height: 100%;
+            border: 1px solid #e9ecef;
+        }
+        
+        .panel-title {
+            color: #495057;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Credentials panel styles */
+        .credential-info .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .credential-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        .credential-value {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px 16px;
+            color: #495057;
+            font-size: 0.95rem;
+        }
+        
+        /* Account selection styles */
+        .accounts-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .account-item {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .account-item .form-check {
+            margin: 0;
+        }
+        
+        .account-item .form-check-input {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            margin: 0;
+            scale: 1.2;
+        }
+        
+        .account-label {
+            display: block;
+            background: #fff;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 16px 16px 16px 48px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0;
+        }
+        
+        .account-label:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+        
+        .account-item.selected .account-label {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .account-details {
+            line-height: 1.4;
+        }
+        
+        .account-number {
+            color: #007bff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        
+        .account-info {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .account-balance {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        /* Platform selection styles */
         .account-type-card {
             cursor: pointer;
             transition: all 0.3s ease;
@@ -424,69 +564,6 @@ document.addEventListener('DOMContentLoaded', function() {
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
         }
         
-        /* Account selection card styles */
-        .account-selection-card {
-            position: relative;
-            height: 100%;
-        }
-        
-        .account-selection-card .form-check-input {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 10;
-            transform: scale(1.3);
-        }
-        
-        .account-card-label {
-            cursor: pointer;
-            margin-bottom: 0;
-            display: block;
-            height: 100%;
-        }
-        
-        .account-card-label .card {
-            transition: all 0.3s ease;
-            border-color: #e0e0e0;
-            height: 100%;
-        }
-        
-        .account-card-label:hover .card {
-            border-color: var(--primary-color);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        .account-selection-card.selected .card {
-            border-color: var(--primary-color) !important;
-            background-color: rgba(16, 185, 129, 0.05);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.15);
-        }
-        
-        .account-details {
-            font-size: 0.9em;
-        }
-        
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-            padding: 4px 0;
-        }
-        
-        .detail-label {
-            color: #6c757d;
-            font-weight: 500;
-            min-width: 80px;
-        }
-        
-        .detail-value {
-            color: #495057;
-            font-weight: 600;
-            text-align: right;
-        }
-        
         /* Form styles */
         .form-control:focus {
             border-color: var(--primary-color);
@@ -494,12 +571,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         .form-check-input:checked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background-color: #28a745;
+            border-color: #28a745;
         }
         
         .form-check-input:focus {
-            box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
         }
         
         /* Button styles */
@@ -518,9 +595,15 @@ document.addEventListener('DOMContentLoaded', function() {
             border-color: #28a745;
         }
         
-        .btn-success:hover {
+        .btn-success:hover:not(:disabled) {
             background-color: #218838;
             border-color: #1e7e34;
+        }
+        
+        .btn-success:disabled {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            opacity: 0.7;
         }
         
         /* Loading spinner */
@@ -550,26 +633,38 @@ document.addEventListener('DOMContentLoaded', function() {
             color: #856404;
         }
         
-        /* Responsive adjustments */
+        /* Responsive design */
         @media (max-width: 768px) {
-            .account-type-card,
-            .account-selection-card {
-                margin-bottom: 1rem;
+            .credentials-panel, .selection-panel {
+                margin-bottom: 20px;
             }
             
-            .d-flex.justify-content-between {
-                flex-direction: column;
-                gap: 10px;
+            .account-item .form-check-input {
+                left: 12px;
             }
             
-            .d-flex.justify-content-between .btn {
-                width: 100%;
+            .account-label {
+                padding: 12px 12px 12px 40px;
             }
         }
         
-        /* Smooth transitions */
-        * {
-            transition: all 0.2s ease;
+        /* Scrollbar styling */
+        .accounts-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .accounts-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .accounts-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .accounts-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     `;
     document.head.appendChild(style);
