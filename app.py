@@ -512,10 +512,11 @@ def handle_tradelocker_connection():
         session['tradelocker_accounts'] = formatted_accounts
         
         if formatted_accounts:
-            flash(f"Successfully found {len(formatted_accounts)} TradeLocker account(s). Please select one below to sync.", "success")
+            # FIXED: This should NOT say "account added successfully" - just that accounts were found
+            flash(f"Connection successful! Found {len(formatted_accounts)} TradeLocker account(s). Please select one to sync with the competition.", "info")
             logger.info(f"Found {len(formatted_accounts)} accounts to display")
         else:
-            flash("No TradeLocker accounts found for this user", "error")
+            flash("No TradeLocker accounts found for this user. Please check your credentials.", "warning")
             logger.warning("No accounts found in API response")
             
         return redirect(url_for('accounts'))
@@ -532,7 +533,7 @@ def handle_tradelocker_connection():
         return redirect(url_for('accounts'))
 
 def handle_tradelocker_account_selection():
-    """Handle TradeLocker account selection and save to database"""
+    """Handle TradeLocker account selection and save to database - ONLY function that should show success"""
     try:
         selected_account_id = request.form.get('selected_account')
         tradelocker_accounts = session.get('tradelocker_accounts', [])
@@ -597,15 +598,24 @@ def handle_tradelocker_account_selection():
         session.pop('tradelocker_login_info', None)
         session.pop('tradelocker_token_expiry', None)
         
-        flash(f'TradeLocker account "{selected_account["name"]}" (#{selected_account["accNum"]}) synced successfully!', 'success')
-        logger.info(f"Successfully synced TradeLocker account {selected_account['accNum']} for user {current_user.id}")
+        # ONLY NOW should we show the "account added successfully" message
+        flash(f'Trading account "{selected_account["name"]}" (#{selected_account["accNum"]}) added successfully!', 'success')
+        logger.info(f"Successfully added TradeLocker account {selected_account['accNum']} for user {current_user.id}")
         
         return redirect(url_for('dashboard'))
         
     except Exception as e:
         logger.error(f"TradeLocker account selection error: {str(e)}")
-        flash(f"Error syncing TradeLocker account: {str(e)}", "error")
+        flash(f"Error adding TradeLocker account: {str(e)}", "error")
         return redirect(url_for('accounts'))
+
+# Also add a route to clear any stale flash messages
+@app.route('/clear-messages')
+def clear_messages():
+    """Clear any flash messages and redirect to accounts"""
+    # This will clear any existing flash messages
+    list(get_flashed_messages())  # Consuming the messages clears them
+    return redirect(url_for('accounts'))
 
 def handle_regular_account_setup():
     """Handle regular MT5 account setup"""
