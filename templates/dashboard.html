@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Trading Competition{% endblock %}
+
+{% block content %}
+<!-- Competition Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="text-gradient-primary mb-2">Trading Competition 2025</h4>
+                        {% if start_date and end_date %}
+                        <p class="text-muted mb-0">
+                            <span class="material-symbols-outlined me-1" style="font-size: 16px;">schedule</span>
+                            {{ start_date.strftime('%B %d') }} - {{ end_date.strftime('%B %d, %Y') }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <span class="badge bg-gradient-success px-3 py-2">
+                            <span class="material-symbols-outlined me-1" style="font-size: 16px;">play_circle</span>
+                            Active
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if has_account %}
+<!-- Account Overview -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">account_balance</span>
+                <h5 class="text-muted mb-1">Current Balance</h5>
+                <h3 class="text-gradient-primary mb-0">${{ "%.2f"|format(account.current_balance) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <span class="material-symbols-outlined text-secondary mb-2" style="font-size: 32px;">savings</span>
+                <h5 class="text-muted mb-1">Starting Balance</h5>
+                <h3 class="mb-0">${{ "%.2f"|format(account.starting_balance) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                {% set profit = account.current_balance - account.starting_balance %}
+                <span class="material-symbols-outlined mb-2 {% if profit >= 0 %}positive{% else %}negative{% endif %}" style="font-size: 32px;">
+                    {% if profit >= 0 %}trending_up{% else %}trending_down{% endif %}
+                </span>
+                <h5 class="text-muted mb-1">Profit/Loss</h5>
+                <h3 class="mb-0 {% if profit >= 0 %}positive{% else %}negative{% endif %}">
+                    {% if profit >= 0 %}+{% endif %} ${{ "%.2f"|format(profit) }}
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                {% set percentage = ((account.current_balance - account.starting_balance) / account.starting_balance * 100) if account.starting_balance > 0 else 0 %}
+                <span class="material-symbols-outlined mb-2 {% if percentage >= 0 %}positive{% else %}negative{% endif %}" style="font-size: 32px;">percent</span>
+                <h5 class="text-muted mb-1">Return</h5>
+                <h3 class="mb-0 {% if percentage >= 0 %}positive{% else %}negative{% endif %}">
+                    {% if percentage >= 0 %}+{% endif %}{{ "%.2f"|format(percentage) }}%
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ranking Info -->
+{% if user_position %}
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">leaderboard</span>
+                <h5 class="text-muted mb-1">Your Ranking</h5>
+                <h3 class="text-gradient-primary mb-0">#{{ user_position }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">trophy</span>
+                <h5 class="text-muted mb-1">Leader Performance</h5>
+                <h3 class="positive mb-0">+{{ "%.2f"|format(top_percentage) }}%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Account Details -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Account Details</h5>
+                <span class="badge bg-gradient-{{ 'success' if account.is_active else 'secondary' }}">
+                    {{ 'Active' if account.is_active else 'Inactive' }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Account Type:</strong> {{ account.account_type.title() }}</p>
+                        <p><strong>Account Number:</strong> {{ account.account_number }}</p>
+                        {% if account.account_type == 'tradelocker' %}
+                        <p><strong>Server:</strong> {{ account.tl_server }}</p>
+                        {% else %}
+                        <p><strong>Server:</strong> {{ account.mt5_server }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Last Updated:</strong> 
+                        {% if account.last_updated %}
+                            {{ account.last_updated.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                        </p>
+                        <p><strong>Account Status:</strong> 
+                            <span class="status-{{ 'active' if account.is_active else 'inactive' }}">
+                                {{ 'Active' if account.is_active else 'Inactive' }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('accounts') }}" class="btn btn-outline-primary">
+                        <span class="material-symbols-outlined me-1">edit</span>
+                        Update Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- No Account Setup -->
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <span class="material-symbols-outlined text-primary mb-3" style="font-size: 64px;">account_balance</span>
+                <h3 class="text-gradient-primary mb-3">Setup Your Trading Account</h3>
+                <p class="text-muted mb-4">Connect your trading account to join the competition and track your performance.</p>
+                <a href="{{ url_for('accounts') }}" class="btn btn-primary btn-lg">
+                    <span class="material-symbols-outlined me-2">add</span>
+                    Add Trading Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">leaderboard</span>
+                <h5 class="mb-2">View Leaderboard</h5>
+                <p class="text-muted mb-3">See how you rank against other traders</p>
+                <a href="{{ url_for('leaderboard') }}" class="btn btn-outline-primary">View Rankings</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">info</span>
+                <h5 class="mb-2">Competition Rules</h5>
+                <p class="text-muted mb-3">Learn about the competition guidelines</p>
+                <button class="btn btn-outline-primary" onclick="showRules()">View Rules</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">account_balance</span>
+                <h5 class="mb-2">Manage Account</h5>
+                <p class="text-muted mb-3">Update your trading account settings</p>
+                <a href="{{ url_for('accounts') }}" class="btn btn-outline-primary">Manage</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showRules() {
+    fetch('/api/rules')
+        .then(response => response.json())
+        .then(data => {
+            let rulesHtml = `<h4>${data.title}</h4><ol>`;
+            data.steps.forEach(step => {
+                rulesHtml += `<li><strong>${step.title}</strong><br>${step.description}`;
+                if (step.link) {
+                    rulesHtml += `<br><a href="${step.link}" target="_blank" class="text-primary">Sign up here</a>`;
+                }
+                rulesHtml += '</li><br>';
+            });
+            rulesHtml += '</ol><h5>Important Notes:</h5><ul>';
+            data.notes.forEach(note => {
+                rulesHtml += `<li>${note}</li>`;
+            });
+            rulesHtml += '</ul>';
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Competition Rules</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">${rulesHtml}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            new bootstrap.Modal(modal).show();
+            modal.addEventListener('hidden.bs.modal', () => modal.remove());
+        })
+        .catch(error => showToast('Error loading rules', 'error'));
+}
+</script>
+{% endblock %}
