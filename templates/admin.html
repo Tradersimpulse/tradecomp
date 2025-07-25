@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Trading Competition{% endblock %}
+
+{% block content %}
+<!-- Competition Settings -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="text-gradient-primary mb-0">
+                    <span class="material-symbols-outlined me-2">settings</span>
+                    Competition Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_admin_settings') }}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                   value="{{ settings.start_date.strftime('%Y-%m-%d') if settings and settings.start_date else '' }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" 
+                                   value="{{ settings.end_date.strftime('%Y-%m-%d') if settings and settings.end_date else '' }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="referral_link" class="form-label">Broker Referral Link</label>
+                            <input type="url" class="form-control" id="referral_link" name="referral_link" 
+                                   value="{{ settings.referral_link if settings else '' }}" placeholder="https://broker.com/signup">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined me-1">save</span>
+                        Update Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">groups</span>
+                <h5 class="text-muted mb-1">Total Accounts</h5>
+                <h3 class="text-gradient-primary mb-0">{{ accounts|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set active_accounts = accounts | selectattr('is_active') | list | length %}
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">check_circle</span>
+                <h5 class="text-muted mb-1">Active Accounts</h5>
+                <h3 class="positive mb-0">{{ active_accounts }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set tradelocker_count = accounts | selectattr('account_type', 'equalto', 'tradelocker') | list | length %}
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">trending_up</span>
+                <h5 class="text-muted mb-1">TradeLocker</h5>
+                <h3 class="mb-0">{{ tradelocker_count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set mt5_count = accounts | selectattr('account_type', 'equalto', 'mt5') | list | length %}
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">assessment</span>
+                <h5 class="text-muted mb-1">MetaTrader 5</h5>
+                <h3 class="mb-0">{{ mt5_count }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trading Accounts -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <span class="material-symbols-outlined me-2">account_balance</span>
+                    Trading Accounts
+                </h5>
+                <div class="btn-group">
+                    <button class="btn btn-outline-primary btn-sm" onclick="exportData()">
+                        <span class="material-symbols-outlined me-1">download</span>
+                        Export
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                        <span class="material-symbols-outlined me-1">refresh</span>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if accounts %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Account Type</th>
+                                <th>Account Number</th>
+                                <th>Server</th>
+                                <th>Starting Balance</th>
+                                <th>Current Balance</th>
+                                <th>Profit/Loss</th>
+                                <th>Return %</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in accounts %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ account.username }}</strong><br>
+                                        <small class="text-muted">{{ account.email }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if account.account_type == 'tradelocker' else 'warning' }}">
+                                        {{ account.account_type.upper() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <code>{{ account.account_number }}</code>
+                                </td>
+                                <td>
+                                    {% if account.account_type == 'tradelocker' %}
+                                        {{ account.tl_server }}
+                                    {% else %}
+                                        {{ account.mt5_server }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.starting_balance %}
+                                        ${{ "%.2f"|format(account.starting_balance) }}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.current_balance %}
+                                        ${{ "%.2f"|format(account.current_balance) }}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.starting_balance and account.current_balance %}
+                                        {% set profit = account.current_balance - account.starting_balance %}
+                                        <span class="{% if profit >= 0 %}positive{% else %}negative{% endif %}">
+                                            {% if profit >= 0 %}+{% endif %} ${{ "%.2f"|format(profit) }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.starting_balance and account.current_balance and account.starting_balance > 0 %}
+                                        {% set percentage = ((account.current_balance - account.starting_balance) / account.starting_balance * 100) %}
+                                        <span class="{% if percentage >= 0 %}positive{% else %}negative{% endif %}">
+                                            <strong>{% if percentage >= 0 %}+{% endif %}{{ "%.2f"|format(percentage) }}%</strong>
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if account.is_active else 'secondary' }}">
+                                        {% if account.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>{{ account.created_at.strftime('%Y-%m-%d %H:%M') if account.created_at else 'Unknown' }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-info" onclick="viewAccount('{{ account.account_id }}')" title="View Details">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                        </button>
+                                        <button class="btn btn-outline-warning" onclick="toggleAccount('{{ account.account_id }}')" title="Toggle Status">
+                                            <span class="material-symbols-outlined">
+                                                {% if account.is_active %}pause{% else %}play_arrow{% endif %}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <span class="material-symbols-outlined text-muted mb-3" style="font-size: 64px;">account_balance</span>
+                    <h5 class="text-muted">No trading accounts registered yet</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewAccount(accountId) {
+    // Implement account details modal
+    showToast('Account details feature coming soon', 'info');
+}
+
+function toggleAccount(accountId) {
+    // Implement account status toggle
+    if (confirm('Are you sure you want to toggle the account status?')) {
+        showToast('Account status toggle feature coming soon', 'info');
+    }
+}
+
+function exportData() {
+    // Implement data export
+    showToast('Export feature coming soon', 'info');
+}
+
+function refreshData() {
+    location.reload();
+}
+
+// Auto-refresh every 2 minutes
+setInterval(refreshData, 120000);
+
+// Add table sorting functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('.table');
+    if (table) {
+        const headers = table.querySelectorAll('th');
+        headers.forEach((header, index) => {
+            if (index < headers.length - 1) { // Don't make actions column sortable
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', () => {
+                    showToast('Table sorting feature coming soon', 'info');
+                });
+            }
+        });
+    }
+});
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+            
+            if (endDate <= startDate) {
+                e.preventDefault();
+                showToast('End date must be after start date', 'error');
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
