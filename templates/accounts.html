@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}My Account - Trading Competition{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="text-gradient-primary mb-0">Trading Account Setup</h4>
+                <p class="text-muted mb-0">Connect your trading account to join the competition</p>
+            </div>
+            <div class="card-body">
+                <!-- Account Type Selection -->
+                <div class="mb-4">
+                    <label class="form-label">Select Trading Platform</label>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card account-type-card" data-type="tradelocker">
+                                <div class="card-body text-center">
+                                    <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">trending_up</span>
+                                    <h5 class="mb-2">TradeLocker</h5>
+                                    <p class="text-muted mb-0">Web-based trading platform</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card account-type-card" data-type="mt5">
+                                <div class="card-body text-center">
+                                    <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">assessment</span>
+                                    <h5 class="mb-2">MetaTrader 5</h5>
+                                    <p class="text-muted mb-0">Desktop trading platform</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Forms -->
+                <form method="POST" id="accountForm" style="display: none;">
+                    <input type="hidden" name="account_type" id="accountType" value="">
+                    
+                    <!-- TradeLocker Form -->
+                    <div id="tradelockerForm" class="account-form" style="display: none;">
+                        <h5 class="text-gradient-primary mb-3">TradeLocker Account Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tl_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="tl_email" name="tl_email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tl_password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="tl_password" name="tl_password" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tl_server" class="form-label">Server</label>
+                                <select class="form-control" id="tl_server" name="tl_server" required>
+                                    <option value="">Select Server</option>
+                                    <option value="live">Live Server</option>
+                                    <option value="demo">Demo Server</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="accnum" class="form-label">Account Number</label>
+                                <input type="text" class="form-control" id="accnum" name="accnum" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MT5 Form -->
+                    <div id="mt5Form" class="account-form" style="display: none;">
+                        <h5 class="text-gradient-primary mb-3">MetaTrader 5 Account Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="mt5_account" class="form-label">Account Number</label>
+                                <input type="text" class="form-control" id="mt5_account" name="mt5_account" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="mt5_password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="mt5_password" name="mt5_password" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="mt5_server" class="form-label">Server</label>
+                                <input type="text" class="form-control" id="mt5_server" name="mt5_server" required placeholder="e.g., PlexyTrade-Live">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                            <span class="material-symbols-outlined me-1">arrow_back</span>
+                            Back
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined me-1">save</span>
+                            Save Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Instructions -->
+                <div id="instructions" class="mt-4">
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-start">
+                            <span class="material-symbols-outlined me-2 mt-1">info</span>
+                            <div>
+                                <h6 class="mb-2">Important Instructions:</h6>
+                                <ul class="mb-0">
+                                    <li>You must register with our broker link to participate</li>
+                                    <li>Minimum account balance of $100 required</li>
+                                    <li>Only live accounts are eligible for the competition</li>
+                                    <li>Your account data is used only for competition tracking</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="https://plexytrade.com/?t=TBZp1B&term=register" target="_blank" class="btn btn-success">
+                            <span class="material-symbols-outlined me-1">open_in_new</span>
+                            Sign Up with Broker
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const accountTypeCards = document.querySelectorAll('.account-type-card');
+    const accountForm = document.getElementById('accountForm');
+    const accountType = document.getElementById('accountType');
+    const tradelockerForm = document.getElementById('tradelockerForm');
+    const mt5Form = document.getElementById('mt5Form');
+    const instructions = document.getElementById('instructions');
+
+    // Account type selection
+    accountTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const type = this.dataset.type;
+            
+            // Remove active state from all cards
+            accountTypeCards.forEach(c => c.classList.remove('border-primary'));
+            
+            // Add active state to selected card
+            this.classList.add('border-primary');
+            
+            // Show appropriate form
+            accountType.value = type;
+            accountForm.style.display = 'block';
+            instructions.style.display = 'none';
+            
+            if (type === 'tradelocker') {
+                tradelockerForm.style.display = 'block';
+                mt5Form.style.display = 'none';
+                
+                // Set required attributes
+                document.querySelectorAll('#tradelockerForm [required]').forEach(input => {
+                    input.required = true;
+                });
+                document.querySelectorAll('#mt5Form [required]').forEach(input => {
+                    input.required = false;
+                });
+            } else {
+                mt5Form.style.display = 'block';
+                tradelockerForm.style.display = 'none';
+                
+                // Set required attributes
+                document.querySelectorAll('#mt5Form [required]').forEach(input => {
+                    input.required = true;
+                });
+                document.querySelectorAll('#tradelockerForm [required]').forEach(input => {
+                    input.required = false;
+                });
+            }
+        });
+    });
+});
+
+function resetForm() {
+    document.getElementById('accountForm').style.display = 'none';
+    document.getElementById('instructions').style.display = 'block';
+    document.querySelectorAll('.account-type-card').forEach(card => {
+        card.classList.remove('border-primary');
+    });
+    document.getElementById('accountForm').reset();
+}
+
+// Add hover effects to account type cards
+document.addEventListener('DOMContentLoaded', function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .account-type-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .account-type-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+        .account-type-card.border-primary {
+            border-color: var(--primary-color) !important;
+            background: rgba(16, 185, 129, 0.1);
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}
