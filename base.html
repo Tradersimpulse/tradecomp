@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trading Competition{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --primary-color: #10B981; /* Green */
+            --secondary-color: #3B82F6; /* Blue */
+            --sidebar-bg: #1a1a2e;
+            --sidebar-item-hover: rgba(16, 185, 129, 0.1);
+            --sidebar-item-active: rgba(16, 185, 129, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --gradient-primary: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+            --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        }
+
+        body {
+            background: #0d1117;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        /* Logo Section */
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+            position: relative;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo-icon {
+            height: 32px;
+            width: 32px;
+            color: var(--primary-color);
+            opacity: 0;
+            position: absolute;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .sidebar.collapsed .sidebar-logo-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar.collapsed .nav-section {
+            margin-bottom: 0;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            padding: 0 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .nav-section-title {
+            display: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary) !important;
+            text-decoration: none;
+            border-radius: 0;
+            transition: all 0.2s ease;
+            position: relative;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 1rem 0.75rem;
+        }
+
+        .nav-link:hover {
+            background: var(--sidebar-item-hover);
+            color: var(--text-primary);
+            border-left-color: var(--primary-color);
+        }
+
+        .sidebar.collapsed .nav-link:hover {
+            border-left-color: transparent;
+            background: var(--sidebar-item-hover);
+        }
+
+        .nav-link.active {
+            background: var(--sidebar-item-active);
+            color: var(--text-primary) !important;
+            border-left-color: var(--primary-color);
+        }
+
+        .sidebar.collapsed .nav-link.active {
+            border-left-color: transparent;
+            background: var(--sidebar-item-active);
+        }
+
+        .nav-link .material-symbols-outlined {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            color: inherit;
+        }
+
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* Toggle button */
+        .sidebar-toggle {
+            position: absolute;
+            top: 1.5rem;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .sidebar.collapsed + .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 100;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Cards and Components */
+        .card {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            border: none;
+        }
+
+        .btn-danger {
+            background: var(--gradient-danger);
+            border: none;
+        }
+
+        /* Forms */
+        .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+            color: var(--text-primary);
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Alerts */
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #EF4444;
+            color: #EF4444;
+        }
+
+        /* Table */
+        .table-dark {
+            --bs-table-bg: rgba(26, 26, 46, 0.8);
+        }
+
+        .table-dark th {
+            border-color: var(--border-color);
+            font-weight: 600;
+        }
+
+        .table-dark td {
+            border-color: var(--border-color);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 2rem 1rem;
+                padding-top: 4rem;
+            }
+
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+
+            .mobile-overlay.show {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .mobile-toggle {
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 1002;
+                background: var(--primary-color);
+                border: none;
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* Custom gradient backgrounds */
+        .bg-gradient-primary {
+            background: var(--gradient-primary) !important;
+        }
+
+        .bg-gradient-success {
+            background: var(--gradient-success) !important;
+        }
+
+        .bg-gradient-danger {
+            background: var(--gradient-danger) !important;
+        }
+
+        /* Text gradients */
+        .text-gradient-primary {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Status indicators */
+        .status-active {
+            color: var(--primary-color);
+        }
+
+        .status-inactive {
+            color: #6B7280;
+        }
+
+        /* Percentage colors */
+        .positive {
+            color: var(--primary-color);
+        }
+
+        .negative {
+            color: #EF4444;
+        }
+
+        .neutral {
+            color: var(--text-secondary);
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- Mobile overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <!-- Mobile toggle button -->
+    <button class="mobile-toggle d-md-none" id="mobileToggle">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Toggle button -->
+        <button class="sidebar-toggle d-none d-md-flex" id="sidebarToggle">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+
+        <!-- Header -->
+        <div class="sidebar-header">
+            <div class="sidebar-logo">TRADING COMP</div>
+            <span class="material-symbols-outlined sidebar-logo-icon">trending_up</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <!-- Main Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Competition</div>
+                <div class="nav-item">
+                    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('leaderboard') }}" class="nav-link {% if request.endpoint == 'leaderboard' %}active{% endif %}">
+                        <span class="material-symbols-outlined">leaderboard</span>
+                        <span class="nav-text">Leaderboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('accounts') }}" class="nav-link {% if request.endpoint == 'accounts' %}active{% endif %}">
+                        <span class="material-symbols-outlined">account_balance</span>
+                        <span class="nav-text">My Account</span>
+                    </a>
+                </div>
+            </div>
+
+            {% if current_user.is_admin %}
+            <!-- Admin Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Admin</div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin') }}" class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span class="nav-text">Admin Panel</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </nav>
+
+        <!-- User section -->
+        <div class="sidebar-user" style="padding: 1rem; border-top: 1px solid var(--border-color); margin-top: auto;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                <div style="width: 32px; height: 32px; background: var(--gradient-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.9rem;">
+                    {{ current_user.username[0].upper() }}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; font-size: 0.9rem; line-height: 1.2; margin-bottom: 0.25rem;">{{ current_user.username }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1;">Trader</div>
+                </div>
+                <a href="{{ url_for('logout') }}" style="color: var(--text-secondary); text-decoration: none;" title="Logout">
+                    <span class="material-symbols-outlined">logout</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- Main content -->
+    <main class="main-content" id="mainContent">
+        {% if current_user.is_authenticated %}
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1 class="page-title">
+                {% block page_title %}
+                    {% if request.endpoint == 'dashboard' %}Dashboard
+                    {% elif request.endpoint == 'leaderboard' %}Leaderboard
+                    {% elif request.endpoint == 'accounts' %}My Account
+                    {% elif request.endpoint == 'admin' %}Admin Panel
+                    {% else %}Trading Competition{% endif %}
+                {% endblock %}
+            </h1>
+        </div>
+        {% endif %}
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center">
+                        <span class="material-symbols-outlined me-2">
+                            {% if category == 'success' %}check_circle
+                            {% elif category == 'error' or category == 'danger' %}error
+                            {% elif category == 'warning' %}warning
+                            {% else %}info{% endif %}
+                        </span>
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mobileToggle = document.getElementById('mobileToggle');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            const toggleIcon = sidebarToggle?.querySelector('.material-symbols-outlined');
+
+            // Desktop sidebar toggle
+            sidebarToggle?.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                if (sidebar.classList.contains('collapsed')) {
+                    toggleIcon.textContent = 'chevron_right';
+                } else {
+                    toggleIcon.textContent = 'chevron_left';
+                }
+            });
+
+            // Mobile sidebar toggle
+            mobileToggle?.addEventListener('click', function() {
+                sidebar.classList.add('mobile-open');
+                mobileOverlay.classList.add('show');
+            });
+
+            // Close mobile sidebar
+            mobileOverlay?.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('show');
+            });
+        });
+
+        // Global notification function
+        function showToast(message, type = 'info') {
+            const alertClass = type === 'error' ? 'danger' : type;
+            const icon = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
+            
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${alertClass} alert-dismissible fade show position-fixed`;
+            alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+            alert.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <span class="material-symbols-outlined me-2">${icon}</span>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alert);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
