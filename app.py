@@ -421,42 +421,109 @@ def accounts():
         else:
             return handle_regular_account_setup()
 
-# Updated TradeLocker connection - only fetches accounts, doesn't save them
 def handle_tradelocker_connection():
     """Handle TradeLocker API connection - fetch accounts for selection"""
     try:
-        account_type = request.form.get('account_type', 'demo')
-        email = request.form.get('tl_email')
-        password = request.form.get('tl_password')
-        server = request.form.get('tl_server')
+        account_type = request.form.get('account_type', 'demo')  # demo or live
+        email = request.form.get('email')  # Changed from tl_email to match form
+        password = request.form.get('password')  # Changed from tl_password
+        server = request.form.get('server')  # Changed from tl_server
         
         logger.info(f"Connecting to TradeLocker: {email}, {account_type}, {server}")
         
-        # Direct API call for JWT token
+        # Use the correct TradeLocker API structure
         base_url = f"https://{account_type}.tradelocker.com"
-        auth_url = f"{base_url}/backend-api/auth/jwt/token"
         
+        # Step 1: Get JWT token
+        auth_url = f"{base_url}/backend-api/auth/jwt/token"
         auth_payload = {
             "email": email,
             "password": password,
             "server": server
         }
         
-        # Get JWT token
+        logger.info(f"Making auth request to: {auth_url}")
         response = requests.post(auth_url, json=auth_payload, timeout=30)
         
-        if not (200 <= response.status_code < 300):
-            flash(f"Authentication failed: {response.status_code} - {response.text}", "error")
+        if response.status_code != 200:
+            logger.error(f"Auth failed: {response.status_code} - {response.text}")
+            flash(f"Authentication failed: {response.text}", "error")
             return redirect(url_for('accounts'))
         
-        jwt_data = response.json()
-        access_token = jwt_data.get('accessToken')
+        auth_data = response.json()
+        logger.info(f"Auth response: {auth_data}")
+        
+        # Extract access token (handle different response formats)
+        access_token = auth_data.get('accessToken') or auth_data.get('access_token')
         
         if not access_token:
+            logger.error(f"No access token in response: {auth_data}")
             flash("Failed to get access token from TradeLocker", "error")
             return redirect(url_for('accounts'))
         
-        # Store token and login info in session
+        logger.info(f"Got access token: {access_token[:20]}...")
+        
+        # Step 2: Get all accounts using the correct API endpoint
+        accounts_url = f"{base_url}/backend-api/auth/jwt/all-accounts"
+        headers = {
+            'accept': 'application/json',
+            'authorization': f'Bearer {access_token}'
+        }
+        
+        logger.info(f"Making accounts request to: {accounts_url}")
+        accounts_response = requests.get(accounts_url, headers=headers, timeout=30)
+        
+        if accounts_response.status_code != 200:
+            logger.error(f"Accounts fetch failed: {accounts_response.status_code} - {accounts_response.text}")
+            flash(f"Failed to fetch accounts: {accounts_response.text}", "error")
+            return redirect(url_for('accounts'))
+        
+        accounts_data = accounts_response.json()
+        logger.info(f"Accounts response: {accounts_data}")
+        
+        # Step 3: Parse and format accounts for display
+        formatted_accounts = []
+        
+        # Handle different response formats
+        if isinstance(accounts_data, list):
+            accounts_list = accounts_data
+        elif isinstance(accounts_data, dict):
+            accounts_list = accounts_data.get('accounts', accounts_data.get('data', []))
+        else:
+            accounts_list = []
+        
+        logger.info(f"Found {len(accounts_list)} accounts")
+        
+        for account in accounts_list:
+            try:
+                # Extract account information (adapt to TradeLocker's response format)
+                account_id = str(account.get('id', ''))
+                account_name = account.get('name', f'Account {account_id}')
+                account_balance = float(account.get('accountBalance', 0))
+                account_currency = account.get('currency', 'USD')
+                acc_num = str(account.get('accNum', account_id))
+                
+                if account_id:
+                    formatted_accounts.append({
+                        'id': account_id,
+                        'label': f"{account_name} ({account_currency} {account_balance:.2f})",
+                        'balance': account_balance,
+                        'currency': account_currency,
+                        'accNum': acc_num,
+                        'name': account_name
+                    })
+                    logger.info(f"Added account: {account_id} - {account_name}")
+                    
+            except Exception as e:
+                logger.error(f"Error processing account {account}: {str(e)}")
+                continue
+        
+        if not formatted_accounts:
+            flash("No valid accounts found for this user", "warning")
+            return redirect(url_for('accounts'))
+        
+        # Step 4: Store everything in session for the selection step
+        session['tradelocker_accounts'] = formatted_accounts
         session['tradelocker_token'] = access_token
         session['tradelocker_env'] = account_type
         session['tradelocker_login_info'] = {
@@ -465,61 +532,38 @@ def handle_tradelocker_connection():
             'env': account_type
         }
         
-        # Get all accounts using TradeLocker API
-        all_accounts_url = f"{base_url}/backend-api/auth/jwt/all-accounts"
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'accept': 'application/json'
-        }
-        
-        accounts_response = requests.get(all_accounts_url, headers=headers, timeout=30)
-        
-        if not (200 <= accounts_response.status_code < 300):
-            flash(f"Failed to fetch accounts: {accounts_response.status_code} - {accounts_response.text}", "error")
-            return redirect(url_for('accounts'))
-        
-        accounts_data = accounts_response.json()
-        
-        # Format accounts for display
-        formatted_accounts = []
-        accounts_list = accounts_data if isinstance(accounts_data, list) else accounts_data.get('accounts', [])
-        
-        for account in accounts_list:
-            account_id = account.get('id') or account.get('accNum')
-            if account_id:
-                formatted_accounts.append({
-                    'id': str(account_id),
-                    'label': f"Account {account_id} - {account.get('currency', 'USD')} {account.get('accountBalance', '0.00')}",
-                    'balance': str(account.get('accountBalance', '0.00')),
-                    'currency': account.get('currency', 'USD'),
-                    'accNum': str(account.get('accNum', account_id)),
-                    'name': account.get('name', f'Account {account_id}')
-                })
-        
-        # Store accounts in session for selection
-        session['tradelocker_accounts'] = formatted_accounts
-        
-        if formatted_accounts:
-            flash(f"Connection successful! Found {len(formatted_accounts)} accounts. Select which ones to add.", "info")
-        else:
-            flash("No accounts found for this user", "warning")
-            
+        flash(f"Successfully connected! Found {len(formatted_accounts)} accounts. Please select which ones to add.", "success")
         return redirect(url_for('accounts'))
         
+    except requests.exceptions.Timeout:
+        logger.error("TradeLocker API timeout")
+        flash("Connection timeout. Please try again.", "error")
+        return redirect(url_for('accounts'))
+    except requests.exceptions.RequestException as e:
+        logger.error(f"TradeLocker API request error: {str(e)}")
+        flash(f"Connection error: {str(e)}", "error")
+        return redirect(url_for('accounts'))
     except Exception as e:
         logger.error(f"TradeLocker connection error: {str(e)}")
         flash(f"Error connecting to TradeLocker: {str(e)}", "error")
         return redirect(url_for('accounts'))
 
-# NEW: Handle multiple account addition like Traders Impulse
 def handle_tradelocker_accounts_addition():
-    """Handle adding multiple selected TradeLocker accounts"""
+    """Handle adding multiple selected TradeLocker accounts to database"""
     try:
         selected_account_ids = request.form.getlist('selected_accounts')
         tradelocker_accounts = session.get('tradelocker_accounts', [])
+        login_info = session.get('tradelocker_login_info', {})
         
-        if not selected_account_ids or not tradelocker_accounts:
-            flash("No accounts selected or session expired", "error")
+        logger.info(f"Adding accounts: {selected_account_ids}")
+        logger.info(f"Available accounts: {[acc['id'] for acc in tradelocker_accounts]}")
+        
+        if not selected_account_ids:
+            flash("No accounts selected", "error")
+            return redirect(url_for('accounts'))
+            
+        if not tradelocker_accounts:
+            flash("Session expired. Please reconnect to TradeLocker.", "error")
             return redirect(url_for('accounts'))
         
         # Find selected accounts
@@ -532,6 +576,8 @@ def handle_tradelocker_accounts_addition():
             flash("Selected accounts not found", "error")
             return redirect(url_for('accounts'))
         
+        logger.info(f"Found {len(selected_accounts)} accounts to add")
+        
         # Save accounts to database
         conn = get_connection()
         if not conn:
@@ -539,48 +585,66 @@ def handle_tradelocker_accounts_addition():
             return redirect(url_for('accounts'))
         
         cursor = conn.cursor()
-        login_info = session.get('tradelocker_login_info', {})
         added_count = 0
         
-        for account in selected_accounts:
+        # First, deactivate all existing accounts for this user
+        cursor.execute("UPDATE trading_accounts SET is_active = 0 WHERE user_id = %s", (current_user.id,))
+        
+        for i, account in enumerate(selected_accounts):
             try:
+                account_id = account['id']
+                
                 # Check if account already exists for this user
                 cursor.execute("""
                     SELECT id FROM trading_accounts 
-                    WHERE user_id = %s AND account_id = %s
-                """, (current_user.id, account['id']))
+                    WHERE user_id = %s AND (account_id = %s OR account_number = %s)
+                """, (current_user.id, account_id, account['accNum']))
                 
-                if cursor.fetchone():
-                    logger.warning(f"Account {account['id']} already exists for user {current_user.id}")
+                existing = cursor.fetchone()
+                
+                if existing:
+                    logger.warning(f"Account {account_id} already exists for user {current_user.id}")
+                    # Update existing account to make it active
+                    cursor.execute("""
+                        UPDATE trading_accounts 
+                        SET is_active = %s, last_updated = %s, current_balance = %s
+                        WHERE user_id = %s AND (account_id = %s OR account_number = %s)
+                    """, (1 if i == 0 else 0, datetime.now(), account['balance'], 
+                          current_user.id, account_id, account['accNum']))
+                    added_count += 1
                     continue
                 
-                # Insert new account
+                # Insert new trading account
                 cursor.execute("""
                     INSERT INTO trading_accounts 
-                    (user_id, account_type, account_id, account_name, starting_balance, current_balance, 
-                     tl_email, tl_server, account_number, account_env, is_active, created_at, last_updated) 
+                    (user_id, account_type, account_id, account_name, account_number,
+                     starting_balance, current_balance, tl_email, tl_server, account_env, 
+                     is_active, created_at, last_updated) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     current_user.id,
                     'tradelocker',
-                    account['id'],
-                    account['name'],
-                    float(account['balance']) if account['balance'] else 0.0,
-                    float(account['balance']) if account['balance'] else 0.0,
-                    login_info.get('email', ''),
-                    login_info.get('server', ''),
+                    account_id,
+                    account['name'][:100],  # Limit length
                     account['accNum'],
+                    float(account['balance']),
+                    float(account['balance']),
+                    login_info.get('email', '')[:255],  # Limit length
+                    login_info.get('server', '')[:100],  # Limit length
                     login_info.get('env', 'demo'),
-                    1,  # Set as active
+                    1 if i == 0 else 0,  # First account is active
                     datetime.now(),
                     datetime.now()
                 ))
+                
                 added_count += 1
+                logger.info(f"Successfully added account: {account_id}")
                 
             except Exception as e:
-                logger.error(f"Error adding account {account['id']}: {str(e)}")
+                logger.error(f"Error adding account {account.get('id', 'unknown')}: {str(e)}")
                 continue
         
+        # Commit all changes
         conn.commit()
         cursor.close()
         conn.close()
@@ -592,17 +656,29 @@ def handle_tradelocker_accounts_addition():
         session.pop('tradelocker_login_info', None)
         
         if added_count > 0:
-            flash(f'Successfully added {added_count} trading account(s)!', 'success')
+            flash(f'Successfully added {added_count} trading account(s)! The first account has been set as your active competition account.', 'success')
+            logger.info(f"Successfully added {added_count} accounts for user {current_user.id}")
         else:
             flash('No new accounts were added. They may already exist.', 'warning')
         
         return redirect(url_for('dashboard'))
         
     except Exception as e:
-        logger.error(f"TradeLocker accounts addition error: {str(e)}")
+        logger.error(f"Error in handle_tradelocker_accounts_addition: {str(e)}")
         flash(f"Error adding accounts: {str(e)}", "error")
         return redirect(url_for('accounts'))
 
+# Add a route to clear TradeLocker session if needed
+@app.route('/clear_tradelocker_session', methods=['POST']) 
+@login_required
+def clear_tradelocker_session():
+    """Clear TradeLocker session data"""
+    session.pop('tradelocker_accounts', None)
+    session.pop('tradelocker_token', None)
+    session.pop('tradelocker_env', None)
+    session.pop('tradelocker_login_info', None)
+    
+    return redirect(url_for('accounts'))
 # Add route to set default account (from Traders Impulse pattern)
 @app.route('/set_default_account', methods=['POST'])
 @login_required
