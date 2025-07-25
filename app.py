@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import requests
 import logging
 from werkzeug.security import generate_password_hash, check_password_hash
-from tradelocker import TradeLocker  # Add this import
+# REMOVED: from tradelocker import TradeLocker  # This was causing the error
 
 # Load environment variables
 load_dotenv()
@@ -354,7 +354,7 @@ def accounts():
     return render_template('accounts.html', tradelocker_accounts=tradelocker_accounts)
 
 def handle_tradelocker_connection():
-    """Handle TradeLocker API connection"""
+    """Handle TradeLocker API connection using direct HTTP requests"""
     try:
         account_type = request.form.get('account_type')  # 'demo' or 'live'
         email = request.form.get('tl_email')
@@ -363,20 +363,90 @@ def handle_tradelocker_connection():
         
         logger.info(f"Attempting TradeLocker connection: {email}, {account_type}, {server}")
         
-        # Connect to TradeLocker API
-        tradelocker = TradeLocker(env=account_type)
-        jwt_response = tradelocker.get_jwt_token(email, password, server)
+        # Direct API call for JWT token
+        base_url = f"https://{account_type}.tradelocker.com"
+        auth_url = f"{base_url}/backend-api/auth/jwt/token"
+        
+        auth_payload = {
+            "email": email,
+            "password": password,
+            "server": server
+        }
+        
+        # Get JWT token
+        response = requests.post(auth_url, json=auth_payload, timeout=30)
+        
+        if response.status_code != 200:
+            flash(f"Authentication failed: {response.status_code} - {response.text}", "error")
+            return redirect(url_for('accounts'))
+        
+        jwt_data = response.json()
+        access_token = jwt_data.get('accessToken')
+        
+        if not access_token:
+            flash("Failed to get access token from TradeLocker", "error")
+            return redirect(url_for('accounts'))
         
         # Store token in session
-        session['tradelocker_token'] = jwt_response.get('accessToken')
+        session['tradelocker_token'] = access_token
         session['tradelocker_env'] = account_type
         
-        # Get all accounts
-        accounts_response = tradelocker.get_all_accounts()
+        # Calculate token expiry (TradeLocker JWT tokens typically expire in 24 hours)
+        try:
+            import base64
+            import json
+            
+            # Decode JWT payload (without verification for expiry extraction)
+            parts = access_token.split('.')
+            if len(parts) >= 2:
+                # Add padding if needed for base64 decoding
+                payload = parts[1]
+                payload += '=' * (4 - len(payload) % 4)
+                decoded_payload = base64.b64decode(payload)
+                token_data = json.loads(decoded_payload)
+                
+                # Extract expiry timestamp (exp claim in JWT)
+                if 'exp' in token_data:
+                    exp_timestamp = token_data['exp']
+                    expiry_time = datetime.fromtimestamp(exp_timestamp)
+                    session['tradelocker_token_expiry'] = expiry_time.isoformat()
+                    logger.info(f"Token expires at: {expiry_time}")
+                else:
+                    logger.warning("No expiry found in JWT token")
+            else:
+                logger.warning("Invalid JWT token format")
+        except Exception as e:
+            logger.warning(f"Could not decode JWT token for expiry: {str(e)}")
+            # Fallback to default expiry
+            default_expiry = datetime.now() + timedelta(hours=23)
+            session['tradelocker_token_expiry'] = default_expiry.isoformat()
+        
+        # Store login info for later use
+        session['tradelocker_login_info'] = {
+            'email': email,
+            'server': server,
+            'env': account_type
+        }
+        
+        # Get all accounts using direct API call
+        accounts_url = f"{base_url}/backend-api/trade/accounts"
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'accept': 'application/json'
+        }
+        
+        accounts_response = requests.get(accounts_url, headers=headers, timeout=30)
+        
+        if accounts_response.status_code != 200:
+            flash(f"Failed to fetch accounts: {accounts_response.status_code} - {accounts_response.text}", "error")
+            return redirect(url_for('accounts'))
+        
+        accounts_data = accounts_response.json()
+        logger.info(f"Accounts API response: {accounts_data}")
         
         # Format accounts for display
         formatted_accounts = []
-        accounts_list = accounts_response.get('accounts', [])
+        accounts_list = accounts_data.get('accounts', [])
         
         for account in accounts_list:
             account_id = account.get('id')
@@ -405,6 +475,12 @@ def handle_tradelocker_connection():
             
         return redirect(url_for('accounts'))
         
+    except requests.exceptions.Timeout:
+        flash("Connection timeout. Please try again.", "error")
+        return redirect(url_for('accounts'))
+    except requests.exceptions.RequestException as e:
+        flash(f"Connection error: {str(e)}", "error")
+        return redirect(url_for('accounts'))
     except Exception as e:
         logger.error(f"TradeLocker connection error: {str(e)}")
         flash(f"Error connecting to TradeLocker: {str(e)}", "error")
@@ -443,6 +519,7 @@ def handle_tradelocker_account_selection():
         cursor.execute("DELETE FROM trading_accounts WHERE user_id = %s", (current_user.id,))
         
         # Insert new TradeLocker account
+        login_info = session.get('tradelocker_login_info', {})
         cursor.execute("""
             INSERT INTO trading_accounts 
             (user_id, account_type, account_id, account_name, starting_balance, current_balance, 
@@ -455,10 +532,10 @@ def handle_tradelocker_account_selection():
             selected_account['name'],
             float(selected_account['balance']),
             float(selected_account['balance']),
-            session.get('tl_email', ''),
-            session.get('tl_server', ''),
+            login_info.get('email', ''),
+            login_info.get('server', ''),
             selected_account['accNum'],
-            session.get('tradelocker_env', 'demo')
+            login_info.get('env', 'demo')
         ))
         
         conn.commit()
@@ -469,6 +546,7 @@ def handle_tradelocker_account_selection():
         session.pop('tradelocker_accounts', None)
         session.pop('tradelocker_token', None)
         session.pop('tradelocker_env', None)
+        session.pop('tradelocker_login_info', None)
         
         flash('TradeLocker account added successfully!', 'success')
         return redirect(url_for('dashboard'))
