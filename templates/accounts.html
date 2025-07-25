@@ -12,6 +12,23 @@
             </div>
             <div class="card-body">
                 
+                <!-- Display success/error messages -->
+                {% if success_message %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span class="material-symbols-outlined me-2">check_circle</span>
+                    {{ success_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
+                {% if error_message %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span class="material-symbols-outlined me-2">error</span>
+                    {{ error_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
                 <!-- Show TradeLocker account selection interface -->
                 {% if tradelocker_accounts %}
                 <div class="row">
@@ -60,11 +77,11 @@
                         <div class="selection-panel">
                             <h5 class="panel-title">
                                 <span class="material-symbols-outlined me-2">checklist</span>
-                                Select Account for Competition
+                                Select Accounts for Competition
                             </h5>
                             
                             <div class="alert alert-info mb-3">
-                                <small><strong>Note:</strong> You can only select one account for the competition. The account with the minimum $100 balance will be eligible.</small>
+                                <small><strong>Note:</strong> Select the accounts you want to add to the competition. Accounts with at least $100 balance are eligible.</small>
                             </div>
                             
                             <form method="POST" id="accountSelectionForm">
@@ -74,16 +91,16 @@
                                     {% for account in tradelocker_accounts %}
                                     <div class="account-item">
                                         <div class="form-check-modern">
-                                            <input class="form-check-input account-radio" type="radio" 
+                                            <input class="form-check-input account-checkbox" type="checkbox" 
                                                    name="selected_accounts" id="account_{{ loop.index }}" 
                                                    value="{{ account.id }}"
-                                                   {% if account.balance >= 100 %}{% else %}disabled{% endif %}>
+                                                   {% if account.balance|float < 100 %}disabled{% endif %}>
                                             <label class="form-check-label account-label" for="account_{{ loop.index }}">
                                                 <div class="account-details">
                                                     <div class="account-number">{{ account.id }}</div>
                                                     <div class="account-info">
                                                         {{ account.label }}
-                                                        {% if account.balance < 100 %}
+                                                        {% if account.balance|float < 100 %}
                                                         <span class="badge bg-warning text-dark ms-2">Below $100 minimum</span>
                                                         {% endif %}
                                                     </div>
@@ -96,7 +113,7 @@
                                 
                                 <button type="submit" class="btn btn-success btn-lg w-100 mt-4" id="addAccountBtn" disabled>
                                     <span class="material-symbols-outlined me-1">add_circle</span>
-                                    Add Selected Account to Competition
+                                    Add Selected Accounts to Competition
                                 </button>
                             </form>
                         </div>
@@ -135,19 +152,19 @@
                                 <small class="form-text text-muted">Live accounts are required for the main competition</small>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" name="email" required 
+                                <label for="tl_email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="tl_email" name="tl_email" required 
                                        placeholder="your.email@example.com">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                                <label for="tl_password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="tl_password" name="tl_password" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="server" class="form-label">Server</label>
-                                <input type="text" class="form-control" id="server" name="server" 
+                                <label for="tl_server" class="form-label">Server</label>
+                                <input type="text" class="form-control" id="tl_server" name="tl_server" 
                                        placeholder="Enter server name (e.g., PLEXY-Server01)" required>
                                 <small class="form-text text-muted">Check your broker email for server details</small>
                             </div>
@@ -173,7 +190,7 @@
                                     <li>You must register with our broker link to participate</li>
                                     <li>Minimum account balance of $100 required</li>
                                     <li>Only live accounts are eligible for the main competition</li>
-                                    <li>You can only enter one account per email address</li>
+                                    <li>You can enter multiple accounts from the same email</li>
                                     <li>The trader with the highest % gain will win</li>
                                     <li>You can re-enter with a new account by updating your info</li>
                                 </ul>
@@ -215,19 +232,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Account selection handling (radio buttons for single selection)
-    const accountRadios = document.querySelectorAll('.account-radio');
+    // Account selection handling (checkboxes for multiple selection)
+    const accountCheckboxes = document.querySelectorAll('.account-checkbox');
     const addAccountBtn = document.getElementById('addAccountBtn');
     
-    if (accountRadios.length > 0 && addAccountBtn) {
-        accountRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
+    if (accountCheckboxes.length > 0 && addAccountBtn) {
+        accountCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
                 // Enable/disable the add button based on selection
-                const hasSelection = Array.from(accountRadios).some(r => r.checked);
+                const hasSelection = Array.from(accountCheckboxes).some(cb => cb.checked);
                 addAccountBtn.disabled = !hasSelection;
                 
                 // Update visual state
                 updateAccountSelection();
+                
+                // Update button text
+                const selectedCount = Array.from(accountCheckboxes).filter(cb => cb.checked).length;
+                if (selectedCount > 0) {
+                    addAccountBtn.innerHTML = `
+                        <span class="material-symbols-outlined me-1">add_circle</span>
+                        Add ${selectedCount} Account${selectedCount > 1 ? 's' : ''} to Competition
+                    `;
+                } else {
+                    addAccountBtn.innerHTML = `
+                        <span class="material-symbols-outlined me-1">add_circle</span>
+                        Add Selected Accounts to Competition
+                    `;
+                }
             });
         });
     }
@@ -236,11 +267,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const accountSelectionForm = document.getElementById('accountSelectionForm');
     if (accountSelectionForm && addAccountBtn) {
         accountSelectionForm.addEventListener('submit', function(e) {
-            const selectedRadio = document.querySelector('.account-radio:checked');
-            const selectedAccount = selectedRadio ? selectedRadio.closest('.account-item').querySelector('.account-number').textContent : '';
+            const selectedCount = Array.from(accountCheckboxes).filter(cb => cb.checked).length;
             
             // Show loading state
-            addAccountBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Adding Account ${selectedAccount}...`;
+            addAccountBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Adding ${selectedCount} Account${selectedCount > 1 ? 's' : ''}...`;
             addAccountBtn.disabled = true;
         });
     }
@@ -249,8 +279,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateAccountSelection() {
     const accountItems = document.querySelectorAll('.account-item');
     accountItems.forEach(item => {
-        const radio = item.querySelector('.account-radio');
-        if (radio && radio.checked) {
+        const checkbox = item.querySelector('.account-checkbox');
+        if (checkbox && checkbox.checked) {
             item.classList.add('selected');
         } else {
             item.classList.remove('selected');
@@ -326,7 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: all 0.2s ease;
         }
         
-        .account-item .form-check-modern:hover:not(:has(.account-radio:disabled)) {
+        .account-item .form-check-modern:hover:not(:has(.account-checkbox:disabled)) {
             border-color: #007bff;
             background-color: #f8f9ff;
         }
@@ -336,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
             background-color: #f8fff9;
         }
         
-        .account-item .form-check-modern:has(.account-radio:disabled) {
+        .account-item .form-check-modern:has(.account-checkbox:disabled) {
             background-color: #f8f9fa;
             border-color: #dee2e6;
             opacity: 0.6;
@@ -448,6 +478,16 @@ document.addEventListener('DOMContentLoaded', function() {
         .alert-warning {
             background-color: rgba(255, 193, 7, 0.1);
             color: #856404;
+        }
+        
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #721c24;
         }
         
         /* Responsive design */
