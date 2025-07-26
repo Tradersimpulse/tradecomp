@@ -2,211 +2,707 @@
 
 {% block title %}My Account - Trading Competition{% endblock %}
 
+{% block head %}
+<style>
+    body {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%) !important;
+    }
+
+    /* Hero section */
+    .accounts-hero {
+        background: linear-gradient(135deg, rgba(79, 128, 255, 0.1) 0%, rgba(123, 104, 238, 0.1) 100%);
+        border-radius: 24px;
+        border: 1px solid rgba(79, 128, 255, 0.2);
+        backdrop-filter: blur(20px);
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .accounts-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(79, 128, 255, 0.4), transparent);
+    }
+
+    .accounts-hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff 0%, #4F80FF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+
+    .accounts-hero p {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 0;
+    }
+
+    /* Modern cards */
+    .modern-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        backdrop-filter: blur(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .modern-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
+
+    .modern-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(79, 128, 255, 0.3);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header-modern {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 2rem;
+        border-radius: 24px 24px 0 0;
+    }
+
+    .card-body-modern {
+        padding: 2.5rem;
+    }
+
+    .card-title-modern {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .card-title-modern .material-symbols-outlined {
+        margin-right: 0.75rem;
+        font-size: 1.75rem;
+        color: #4F80FF;
+    }
+
+    /* Account display styling */
+    .accounts-table {
+        background: transparent;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .accounts-table th {
+        background: rgba(79, 128, 255, 0.1);
+        border: none;
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .accounts-table td {
+        border: none;
+        padding: 1.25rem 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+    }
+
+    .accounts-table tr:hover {
+        background: rgba(79, 128, 255, 0.05);
+    }
+
+    .account-id {
+        font-weight: 600;
+        font-family: 'Monaco', 'Menlo', monospace;
+        color: #4F80FF;
+    }
+
+    /* Status badges */
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .status-badge.current {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.current::before {
+        content: '⭐';
+        margin-right: 0.5rem;
+    }
+
+    /* Action buttons */
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .action-btn-primary {
+        background: rgba(79, 128, 255, 0.2);
+        color: #4F80FF;
+        border: 1px solid rgba(79, 128, 255, 0.3);
+    }
+
+    .action-btn-primary:hover {
+        background: linear-gradient(135deg, #4F80FF 0%, #7B68EE 100%);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(79, 128, 255, 0.3);
+    }
+
+    /* TradeLocker form styling */
+    .form-section {
+        background: linear-gradient(135deg, rgba(79, 128, 255, 0.05) 0%, rgba(123, 104, 238, 0.05) 100%);
+        border: 1px solid rgba(79, 128, 255, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        backdrop-filter: blur(20px);
+    }
+
+    .form-group-modern {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label-modern {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: block;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control-modern, .form-select-modern {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        color: #fff;
+        padding: 0.875rem 1rem;
+        transition: all 0.3s;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .form-control-modern:focus, .form-select-modern:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #4F80FF;
+        box-shadow: 0 0 0 0.2rem rgba(79, 128, 255, 0.25);
+        color: #fff;
+        outline: none;
+    }
+
+    .form-control-modern::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Account selection */
+    .account-selection {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-check-modern {
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 0.75rem;
+        transition: all 0.3s;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .form-check-modern:hover {
+        background: rgba(79, 128, 255, 0.05);
+        border-color: rgba(79, 128, 255, 0.3);
+    }
+
+    .form-check-modern.selected {
+        background: rgba(40, 167, 69, 0.1);
+        border-color: rgba(40, 167, 69, 0.3);
+    }
+
+    .form-check-modern input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.75rem;
+    }
+
+    .form-check-modern label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    /* Credentials panel styling */
+    .credentials-panel, .selection-panel {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        padding: 2rem;
+        height: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .panel-title {
+        color: #fff;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .panel-title .material-symbols-outlined {
+        margin-right: 0.75rem;
+        font-size: 1.5rem;
+        color: #4F80FF;
+    }
+
+    .credential-info .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .credential-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .credential-value {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .empty-state .material-symbols-outlined {
+        font-size: 4rem;
+        color: rgba(79, 128, 255, 0.3);
+        margin-bottom: 1rem;
+    }
+
+    /* Alert styling */
+    .alert {
+        border-radius: 12px;
+        border: none;
+        padding: 1rem 1.25rem;
+    }
+
+    .alert-info {
+        background: rgba(23, 162, 184, 0.1);
+        border: 1px solid rgba(23, 162, 184, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .alert-warning {
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .alert-success {
+        background: rgba(40, 167, 69, 0.1);
+        border: 1px solid rgba(40, 167, 69, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Competition rules styling */
+    .rules-section {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        backdrop-filter: blur(20px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .accounts-hero {
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .accounts-hero h1 {
+            font-size: 2rem;
+        }
+
+        .card-header-modern, .card-body-modern {
+            padding: 1.5rem;
+        }
+
+        .form-section, .credentials-panel, .selection-panel {
+            padding: 1.5rem;
+        }
+
+        .accounts-table th, .accounts-table td {
+            padding: 1rem 0.75rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .fade-in-up:nth-child(2) { animation-delay: 0.1s; }
+    .fade-in-up:nth-child(3) { animation-delay: 0.2s; }
+    .fade-in-up:nth-child(4) { animation-delay: 0.3s; }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-10 mx-auto">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="text-gradient-primary mb-0">Trading Account Setup</h4>
-                <p class="text-muted mb-0">Connect your trading account to join the competition</p>
-            </div>
-            <div class="card-body">
-                
-                <!-- Display success/error messages -->
-                {% if success_message %}
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <span class="material-symbols-outlined me-2">check_circle</span>
-                    {{ success_message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endif %}
-                
-                {% if error_message %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span class="material-symbols-outlined me-2">error</span>
-                    {{ error_message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endif %}
-                
-                <!-- Show TradeLocker account selection interface -->
-                {% if tradelocker_accounts %}
-                <div class="row">
-                    <!-- Left Panel: Account Credentials (Read-only display) -->
-                    <div class="col-md-5">
-                        <div class="credentials-panel">
-                            <h5 class="panel-title">
-                                <span class="material-symbols-outlined me-2">login</span>
-                                Connected Account
-                            </h5>
-                            
-                            <div class="credential-info">
-                                <div class="form-group mb-3">
-                                    <label class="credential-label">ACCOUNT TYPE</label>
-                                    <div class="credential-value">
-                                        {{ session.tradelocker_login_info.env|title }} Account
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group mb-3">
-                                    <label class="credential-label">EMAIL ADDRESS</label>
-                                    <div class="credential-value">
-                                        {{ session.tradelocker_login_info.email }}
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group mb-3">
-                                    <label class="credential-label">SERVER</label>
-                                    <div class="credential-value">
-                                        {{ session.tradelocker_login_info.server }}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <form method="POST" action="{{ url_for('clear_tradelocker_session') }}">
-                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
-                                    <span class="material-symbols-outlined me-1">refresh</span>
-                                    Connect Different Account
+<!-- Hero Section -->
+<div class="accounts-hero fade-in-up">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h1>Trading Competition 2025</h1>
+            <p>Connect your trading account to join the competition and compete for prizes</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <span class="material-symbols-outlined" style="font-size: 4rem; color: rgba(79, 128, 255, 0.3);">
+                emoji_events
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Display success/error messages -->
+{% if success_message %}
+<div class="alert alert-success alert-dismissible fade show fade-in-up" role="alert">
+    <span class="material-symbols-outlined me-2">check_circle</span>
+    {{ success_message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if error_message %}
+<div class="alert alert-danger alert-dismissible fade show fade-in-up" role="alert">
+    <span class="material-symbols-outlined me-2">error</span>
+    {{ error_message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Current Accounts Section (if user has accounts) -->
+{% if current_user.accounts %}
+<div class="modern-card fade-in-up">
+    <div class="card-header-modern">
+        <h2 class="card-title-modern">
+            <span class="material-symbols-outlined">account_balance</span>
+            Your Competition Accounts
+        </h2>
+    </div>
+    <div class="card-body-modern">
+        <div class="table-responsive">
+            <table class="table accounts-table">
+                <thead>
+                    <tr>
+                        <th>Account ID</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account_id in current_user.accounts %}
+                    <tr>
+                        <td>
+                            <span class="account-id">{{ account_id }}</span>
+                        </td>
+                        <td>
+                            {% if account_id == current_user.current_account_id %}
+                            <span class="status-badge current">Current</span>
+                            {% else %}
+                            <span style="color: rgba(255, 255, 255, 0.5);">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" class="d-inline">
+                                <input type="hidden" name="action" value="set_default">
+                                <input type="hidden" name="account_id" value="{{ account_id }}">
+                                <button type="submit" class="action-btn action-btn-primary">
+                                    <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                        star
+                                    </span>
+                                    Set Default
                                 </button>
                             </form>
-                        </div>
-                    </div>
-                    
-                    <!-- Right Panel: Account Selection -->
-                    <div class="col-md-7">
-                        <div class="selection-panel">
-                            <h5 class="panel-title">
-                                <span class="material-symbols-outlined me-2">checklist</span>
-                                Select Accounts for Competition
-                            </h5>
-                            
-                            <div class="alert alert-info mb-3">
-                                <small><strong>Note:</strong> Select the accounts you want to add to the competition. Accounts with at least $100 balance are eligible.</small>
-                            </div>
-                            
-                            <form method="POST" id="accountSelectionForm">
-                                <input type="hidden" name="action" value="add_tradelocker_accounts">
-                                
-                                <div class="accounts-list">
-                                    {% for account in tradelocker_accounts %}
-                                    <div class="account-item">
-                                        <div class="form-check-modern">
-                                            <input class="form-check-input account-checkbox" type="checkbox" 
-                                                   name="selected_accounts" id="account_{{ loop.index }}" 
-                                                   value="{{ account.id }}"
-                                                   {% if account.balance|float < 100 %}disabled{% endif %}>
-                                            <label class="form-check-label account-label" for="account_{{ loop.index }}">
-                                                <div class="account-details">
-                                                    <div class="account-number">{{ account.id }}</div>
-                                                    <div class="account-info">
-                                                        {{ account.label }}
-                                                        {% if account.balance|float < 100 %}
-                                                        <span class="badge bg-warning text-dark ms-2">Below $100 minimum</span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                
-                                <button type="submit" class="btn btn-success btn-lg w-100 mt-4" id="addAccountBtn" disabled>
-                                    <span class="material-symbols-outlined me-1">add_circle</span>
-                                    Add Selected Accounts to Competition
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                {% else %}
-                
-                <!-- TradeLocker Connection Form -->
-                <div class="form-section">
-                    <h5 class="text-gradient-primary mb-3">
-                        <span class="material-symbols-outlined me-2">link</span>
-                        Connect to TradeLocker
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- TradeLocker Integration -->
+<div class="modern-card fade-in-up">
+    <div class="card-header-modern">
+        <h2 class="card-title-modern">
+            <span class="material-symbols-outlined">sync_alt</span>
+            {% if tradelocker_accounts %}Select Accounts for Competition{% else %}Connect with TradeLocker{% endif %}
+        </h2>
+    </div>
+    <div class="card-body-modern">
+        {% if tradelocker_accounts %}
+        <!-- Account Selection Interface -->
+        <div class="row">
+            <!-- Left Panel: Account Credentials (Read-only display) -->
+            <div class="col-lg-6">
+                <div class="credentials-panel">
+                    <h5 class="panel-title">
+                        <span class="material-symbols-outlined">login</span>
+                        Connected Account
                     </h5>
                     
-                    <div class="alert alert-warning mb-4">
-                        <div class="d-flex align-items-start">
-                            <span class="material-symbols-outlined me-2">warning</span>
-                            <div>
-                                <strong>Important:</strong> You must register with our broker link and have at least $100 in your account to participate in the competition.
+                    <div class="credential-info">
+                        <div class="form-group mb-3">
+                            <label class="credential-label">Account Type</label>
+                            <div class="credential-value">
+                                {{ session.tradelocker_login_info.env|title }} Account
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label class="credential-label">Email Address</label>
+                            <div class="credential-value">
+                                {{ session.tradelocker_login_info.email }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label class="credential-label">Server</label>
+                            <div class="credential-value">
+                                {{ session.tradelocker_login_info.server }}
                             </div>
                         </div>
                     </div>
                     
-                    <form method="POST" id="tradelockerForm">
-                        <input type="hidden" name="action" value="connect_tradelocker">
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="account_type" class="form-label">Account Type</label>
-                                <select class="form-control" id="account_type" name="account_type" required>
-                                    <option value="">Select Account Type</option>
-                                    <option value="demo">Demo Account</option>
-                                    <option value="live">Live Account (Required for Competition)</option>
-                                </select>
-                                <small class="form-text text-muted">Live accounts are required for the main competition</small>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="tl_email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="tl_email" name="tl_email" required 
-                                       placeholder="your.email@example.com">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="tl_password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="tl_password" name="tl_password" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="tl_server" class="form-label">Server</label>
-                                <input type="text" class="form-control" id="tl_server" name="tl_server" 
-                                       placeholder="Enter server name (e.g., PLEXY-Server01)" required>
-                                <small class="form-text text-muted">Check your broker email for server details</small>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-center mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg" id="connectTradeLockerBtn">
-                                <span class="material-symbols-outlined me-1">sync_alt</span>
-                                Connect to TradeLocker
-                            </button>
-                        </div>
+                    <form method="POST" action="{{ url_for('clear_tradelocker_session') }}">
+                        <button type="submit" class="btn btn-outline-light btn-sm w-100">
+                            <span class="material-symbols-outlined me-1">refresh</span>
+                            Connect Different Account
+                        </button>
                     </form>
                 </div>
-
-                <!-- Instructions -->
-                <div class="mt-4">
-                    <div class="alert alert-info">
-                        <div class="d-flex align-items-start">
-                            <span class="material-symbols-outlined me-2 mt-1">info</span>
-                            <div>
-                                <h6 class="mb-2">Competition Rules:</h6>
-                                <ul class="mb-0">
-                                    <li>You must register with our broker link to participate</li>
-                                    <li>Minimum account balance of $100 required</li>
-                                    <li>Only live accounts are eligible for the main competition</li>
-                                    <li>You can enter multiple accounts from the same email</li>
-                                    <li>The trader with the highest % gain will win</li>
-                                    <li>You can re-enter with a new account by updating your info</li>
-                                </ul>
-                            </div>
-                        </div>
+            </div>
+            
+            <!-- Right Panel: Account Selection -->
+            <div class="col-lg-6">
+                <div class="selection-panel">
+                    <h5 class="panel-title">
+                        <span class="material-symbols-outlined">checklist</span>
+                        Select Accounts
+                    </h5>
+                    
+                    <div class="alert alert-info mb-3">
+                        <small><strong>Note:</strong> Select the accounts you want to add to the competition. Accounts with at least $100 balance are eligible.</small>
                     </div>
                     
-                    <div class="text-center">
-                        <a href="https://plexytrade.com/?t=TBZp1B&term=register" target="_blank" class="btn btn-success btn-lg">
-                            <span class="material-symbols-outlined me-1">open_in_new</span>
-                            Sign Up with Broker
-                        </a>
+                    <form method="POST" id="accountSelectionForm">
+                        <input type="hidden" name="action" value="add_tradelocker_accounts">
+                        
+                        <div class="account-selection">
+                            {% for account in tradelocker_accounts %}
+                            <div class="form-check-modern">
+                                <input class="form-check-input account-checkbox" type="checkbox" 
+                                       name="selected_accounts" id="account_{{ loop.index }}" 
+                                       value="{{ account.id }}"
+                                       {% if account.balance|float < 100 %}disabled{% endif %}>
+                                <label class="form-check-label" for="account_{{ loop.index }}">
+                                    <div>
+                                        <div class="account-id">{{ account.id }}</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
+                                            {{ account.label }}
+                                            {% if account.balance|float < 100 %}
+                                            <span class="badge bg-warning text-dark ms-2">Below $100 minimum</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-lg w-100 mt-3" id="addAccountBtn" disabled>
+                            <span class="material-symbols-outlined me-1">add_circle</span>
+                            Add Selected Accounts to Competition
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <!-- TradeLocker Connection Form -->
+        <div class="form-section">
+            <h4 class="mb-4" style="color: #4F80FF; font-weight: 700;">
+                <span class="material-symbols-outlined me-2" style="vertical-align: middle;">
+                    link
+                </span>
+                Connect to TradeLocker
+            </h4>
+            
+            <div class="alert alert-warning mb-4">
+                <div class="d-flex align-items-start">
+                    <span class="material-symbols-outlined me-2">warning</span>
+                    <div>
+                        <strong>Important:</strong> You must register with our broker link and have at least $100 in your account to participate in the competition.
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST" id="tradelockerForm">
+                <input type="hidden" name="action" value="connect_tradelocker">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label for="account_type" class="form-label-modern">Account Type</label>
+                            <select class="form-select-modern" id="account_type" name="account_type" required>
+                                <option value="">Select Account Type</option>
+                                <option value="demo">Demo Account</option>
+                                <option value="live">Live Account (Required for Competition)</option>
+                            </select>
+                            <small class="form-text text-muted">Live accounts are required for the main competition</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label for="tl_email" class="form-label-modern">Email Address</label>
+                            <input type="email" class="form-control-modern" id="tl_email" name="tl_email" 
+                                   placeholder="your.email@example.com" required>
+                        </div>
                     </div>
                 </div>
                 
-                {% endif %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label for="tl_password" class="form-label-modern">Password</label>
+                            <input type="password" class="form-control-modern" id="tl_password" name="tl_password" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label for="tl_server" class="form-label-modern">Server</label>
+                            <input type="text" class="form-control-modern" id="tl_server" name="tl_server" 
+                                   placeholder="Enter server name (e.g., PLEXY-Server01)" required>
+                            <small class="form-text text-muted">Check your broker email for server details</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg" id="connectTradeLockerBtn">
+                        <span class="material-symbols-outlined me-1">sync_alt</span>
+                        Connect to TradeLocker
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Competition Rules -->
+<div class="modern-card fade-in-up">
+    <div class="card-header-modern">
+        <h2 class="card-title-modern">
+            <span class="material-symbols-outlined">info</span>
+            Competition Rules & Information
+        </h2>
+    </div>
+    <div class="card-body-modern">
+        <div class="rules-section">
+            <div class="row">
+                <div class="col-md-8">
+                    <h6 class="mb-3" style="color: #10B981; font-weight: 700;">How to Enter:</h6>
+                    <ul class="mb-0" style="color: rgba(255, 255, 255, 0.9);">
+                        <li>You must register with our broker link to participate</li>
+                        <li>Minimum account balance of $100 required</li>
+                        <li>Only live accounts are eligible for the main competition</li>
+                        <li>You can enter multiple accounts from the same email</li>
+                        <li>The trader with the highest % gain will win</li>
+                        <li>You can re-enter with a new account by updating your info</li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center">
+                    <a href="https://plexytrade.com/?t=TBZp1B&term=register" target="_blank" class="btn btn-success btn-lg">
+                        <span class="material-symbols-outlined me-1">open_in_new</span>
+                        Sign Up with Broker
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -216,6 +712,12 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize animations
+    const fadeElements = document.querySelectorAll('.fade-in-up');
+    fadeElements.forEach((element, index) => {
+        element.style.animationDelay = (index * 0.1) + 's';
+    });
+
     // TradeLocker form submission with loading state
     const tradelockerForm = document.getElementById('tradelockerForm');
     const connectBtn = document.getElementById('connectTradeLockerBtn');
@@ -232,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Account selection handling (checkboxes for multiple selection)
+    // Account selection handling
     const accountCheckboxes = document.querySelectorAll('.account-checkbox');
     const addAccountBtn = document.getElementById('addAccountBtn');
     
@@ -274,10 +776,22 @@ document.addEventListener('DOMContentLoaded', function() {
             addAccountBtn.disabled = true;
         });
     }
+
+    // Form focus effects
+    const formControls = document.querySelectorAll('.form-control-modern, .form-select-modern');
+    formControls.forEach(control => {
+        control.addEventListener('focus', function() {
+            this.closest('.form-group-modern').classList.add('focused');
+        });
+        
+        control.addEventListener('blur', function() {
+            this.closest('.form-group-modern').classList.remove('focused');
+        });
+    });
 });
 
 function updateAccountSelection() {
-    const accountItems = document.querySelectorAll('.account-item');
+    const accountItems = document.querySelectorAll('.form-check-modern');
     accountItems.forEach(item => {
         const checkbox = item.querySelector('.account-checkbox');
         if (checkbox && checkbox.checked) {
@@ -287,240 +801,5 @@ function updateAccountSelection() {
         }
     });
 }
-
-// Add comprehensive styles
-document.addEventListener('DOMContentLoaded', function() {
-    const style = document.createElement('style');
-    style.textContent = `
-        /* Main container styles */
-        .credentials-panel, .selection-panel {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 24px;
-            height: 100%;
-            border: 1px solid #e9ecef;
-        }
-        
-        .panel-title {
-            color: #495057;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-        }
-        
-        /* Credentials panel styles */
-        .credential-info .form-group {
-            margin-bottom: 16px;
-        }
-        
-        .credential-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            display: block;
-        }
-        
-        .credential-value {
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 12px 16px;
-            color: #495057;
-            font-size: 0.95rem;
-        }
-        
-        /* Account selection styles */
-        .accounts-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        
-        .account-item {
-            margin-bottom: 12px;
-            position: relative;
-        }
-        
-        .account-item .form-check-modern {
-            margin: 0;
-            background: #fff;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .account-item .form-check-modern:hover:not(:has(.account-checkbox:disabled)) {
-            border-color: #007bff;
-            background-color: #f8f9ff;
-        }
-        
-        .account-item.selected .form-check-modern {
-            border-color: #28a745;
-            background-color: #f8fff9;
-        }
-        
-        .account-item .form-check-modern:has(.account-checkbox:disabled) {
-            background-color: #f8f9fa;
-            border-color: #dee2e6;
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .account-item .form-check-input {
-            margin-right: 12px;
-            scale: 1.2;
-        }
-        
-        .account-label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            margin-bottom: 0;
-            width: 100%;
-        }
-        
-        .account-details {
-            line-height: 1.4;
-        }
-        
-        .account-number {
-            color: #007bff;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 4px;
-        }
-        
-        .account-info {
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        
-        /* Form section styles */
-        .form-section {
-            background: linear-gradient(135deg, rgba(79, 128, 255, 0.05) 0%, rgba(123, 104, 238, 0.05) 100%);
-            border: 1px solid rgba(79, 128, 255, 0.2);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(20px);
-        }
-        
-        /* Form styles */
-        .form-control:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-        
-        .form-check-input:checked {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-        
-        .form-check-input:focus {
-            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
-        }
-        
-        /* Button styles */
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-        
-        .btn-success {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-        
-        .btn-success:hover:not(:disabled) {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
-        
-        .btn-success:disabled {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            opacity: 0.7;
-        }
-        
-        /* Badge styles */
-        .badge {
-            font-size: 0.7rem;
-        }
-        
-        /* Loading spinner */
-        .spinner-border-sm {
-            width: 1rem;
-            height: 1rem;
-        }
-        
-        /* Alert styles */
-        .alert {
-            border-radius: 8px;
-            border: none;
-        }
-        
-        .alert-info {
-            background-color: rgba(23, 162, 184, 0.1);
-            color: #0c5460;
-        }
-        
-        .alert-warning {
-            background-color: rgba(255, 193, 7, 0.1);
-            color: #856404;
-        }
-        
-        .alert-success {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #155724;
-        }
-        
-        .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #721c24;
-        }
-        
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .credentials-panel, .selection-panel {
-                margin-bottom: 20px;
-            }
-            
-            .form-section {
-                padding: 1.5rem;
-            }
-        }
-        
-        /* Scrollbar styling */
-        .accounts-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .accounts-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-        
-        .accounts-list::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 3px;
-        }
-        
-        .accounts-list::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-    `;
-    document.head.appendChild(style);
-});
 </script>
 {% endblock %}
