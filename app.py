@@ -1009,7 +1009,10 @@ def get_rules():
             'You can enter with multiple accounts. To do this, you will need to register with a different email address'
         ]
     })
-
+    
+@app.route('/rules')
+def rules():
+    return render_template('rules.html')
 # Also add a route to clear any stale flash messages
 @app.route('/clear-messages')
 def clear_messages():
