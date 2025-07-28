@@ -528,53 +528,14 @@
                             <tr>
                                 <th>Account ID</th>
                                 <th>Type</th>
-                                <th>Status</th>
+                                <th>Sync Status</th>
+                                <th>Active</th>
                                 <th>Actions</th>
                                 <th>Remove</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for account_id in current_user.accounts %}
-                            <tr data-account-id="{{ account_id }}" id="account-row-{{ account_id }}">
-                                <td>
-                                    <span class="account-id">{{ account_id }}</span>
-                                </td>
-                                <td>
-                                    <span style="color: rgba(255, 255, 255, 0.7);">TradeLocker</span>
-                                </td>
-                                <td>
-                                    {% if account_id == current_user.current_account_id %}
-                                    <span class="status-badge current">Current</span>
-                                    {% else %}
-                                    <span style="color: rgba(255, 255, 255, 0.5);">Inactive</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <form method="post" class="d-inline">
-                                        <input type="hidden" name="action" value="set_default">
-                                        <input type="hidden" name="account_id" value="{{ account_id }}">
-                                        <button type="submit" class="action-btn action-btn-primary">
-                                            <span class="material-symbols-outlined me-1" style="font-size: 16px;">
-                                                star
-                                            </span>
-                                            Set Default
-                                        </button>
-                                    </form>
-                                </td>
-                                <td>
-                                    <button type="button" 
-                                            class="action-btn action-btn-danger remove-account-btn" 
-                                            data-account-id="{{ account_id }}"
-                                            title="Remove account"
-                                            id="remove-btn-{{ account_id }}">
-                                        <span class="material-symbols-outlined me-1" style="font-size: 16px;">
-                                            delete
-                                        </span>
-                                        Remove
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="accounts-table-body">
+                            <!-- Accounts will be loaded dynamically -->
                         </tbody>
                     </table>
                 </div>
