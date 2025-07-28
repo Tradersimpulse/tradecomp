@@ -8,6 +8,17 @@
         background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%) !important;
     }
 
+    .status-badge.failed {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+    }
+    
+    .status-badge.failed::before {
+        content: '❌';
+        margin-right: 0.5rem;
+    }
+
     /* Hero section */
     .accounts-hero {
         background: linear-gradient(135deg, rgba(79, 128, 255, 0.1) 0%, rgba(123, 104, 238, 0.1) 100%);
