@@ -550,7 +550,6 @@
                 </h2>
             </div>
             <div class="card-body-modern">
-                {% if current_user.accounts %}
                 <div class="table-responsive">
                     <table class="table accounts-table">
                         <thead>
@@ -558,23 +557,67 @@
                                 <th>Account ID</th>
                                 <th>Type</th>
                                 <th>Sync Status</th>
-                                <th>Active</th>
                                 <th>Actions</th>
                                 <th>Remove</th>
                             </tr>
                         </thead>
-                        <tbody id="accounts-table-body">
-                            <!-- Accounts will be loaded dynamically -->
+                        <tbody>
+                            {% if user_accounts %}
+                                {% for account in user_accounts %}
+                                <tr data-account-id="{{ account.account_id }}" id="account-row-{{ account.account_id }}">
+                                    <td>
+                                        <span class="account-id">{{ account.account_id }}</span>
+                                    </td>
+                                    <td>
+                                        <span style="color: rgba(255, 255, 255, 0.7);">{{ account.account_type.title() }}</span>
+                                    </td>
+                                    <td>
+                                        {% if account.sync_status == 'synced' %}
+                                        <span class="status-badge synced">Synced</span>
+                                        {% else %}
+                                        <span class="status-badge pending">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="post" class="d-inline">
+                                            <input type="hidden" name="action" value="set_default">
+                                            <input type="hidden" name="account_id" value="{{ account.account_id }}">
+                                            <button type="submit" class="action-btn action-btn-primary">
+                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                    star
+                                                </span>
+                                                Set Default
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <button type="button" 
+                                                class="action-btn action-btn-danger remove-account-btn" 
+                                                data-account-id="{{ account.account_id }}"
+                                                title="Remove account"
+                                                id="remove-btn-{{ account.account_id }}">
+                                            <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                delete
+                                            </span>
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="empty-state">
+                                            <span class="material-symbols-outlined">account_balance_wallet</span>
+                                            <h4>No accounts connected yet</h4>
+                                            <p>Connect your first trading account below to join the competition</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <div class="empty-state">
-                    <span class="material-symbols-outlined">account_balance_wallet</span>
-                    <h4>No accounts connected yet</h4>
-                    <p>Connect your first trading account below to join the competition</p>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -1091,7 +1134,92 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Toast notification function
+    // Load user accounts and populate table
+    function loadUserAccounts() {
+        fetch('/api/accounts')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    populateAccountsTable(data.accounts);
+                } else {
+                    console.error('Failed to load accounts:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading accounts:', error);
+            });
+    }
+
+    // Populate the accounts table
+    function populateAccountsTable(accounts) {
+        const tableBody = document.getElementById('accounts-table-body');
+        
+        if (accounts.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="empty-state">
+                            <span class="material-symbols-outlined">account_balance_wallet</span>
+                            <h5>No accounts connected yet</h5>
+                            <p>Connect your first trading account below to join the competition</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = accounts.map(account => {
+            const syncStatusBadge = account.sync_status === 'synced' 
+                ? '<span class="status-badge synced">Synced</span>'
+                : '<span class="status-badge pending">Pending</span>';
+            
+            const activeBadge = account.is_active 
+                ? '<span class="status-badge current">Active</span>'
+                : '<span style="color: rgba(255, 255, 255, 0.5);">Inactive</span>';
+
+            return `
+                <tr data-account-id="${account.account_id}" id="account-row-${account.account_id}">
+                    <td>
+                        <span class="account-id">${account.account_id}</span>
+                    </td>
+                    <td>
+                        <span style="color: rgba(255, 255, 255, 0.7);">${account.account_type}</span>
+                    </td>
+                    <td>${syncStatusBadge}</td>
+                    <td>${activeBadge}</td>
+                    <td>
+                        <form method="post" class="d-inline">
+                            <input type="hidden" name="action" value="set_default">
+                            <input type="hidden" name="account_id" value="${account.account_id}">
+                            <button type="submit" class="action-btn action-btn-primary">
+                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">star</span>
+                                Set Default
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <button type="button" 
+                                class="action-btn action-btn-danger remove-account-btn" 
+                                data-account-id="${account.account_id}"
+                                title="Remove account"
+                                id="remove-btn-${account.account_id}">
+                            <span class="material-symbols-outlined me-1" style="font-size: 16px;">delete</span>
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Re-attach event listeners for remove buttons
+        document.querySelectorAll('.remove-account-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const accountId = this.dataset.accountId;
+                removeAccount(accountId);
+            });
+        });
+    }
     function showToast(message, type = 'info') {
         const alertClass = type === 'error' ? 'danger' : type;
         const icon = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
