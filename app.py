@@ -539,7 +539,7 @@ def handle_tradelocker_connection():
         return jsonify({'success': False, 'error': f"Connection failed: {str(e)}"})
 
 def handle_tradelocker_accounts_addition():
-    """Handle adding multiple selected TradeLocker accounts to database - No initial balance, pending status"""
+    """Handle adding multiple selected TradeLocker accounts to database - Save current_balance, leave starting_balance NULL"""
     try:
         selected_account_ids = request.form.getlist('selected_accounts')
         tradelocker_accounts = session.get('tradelocker_accounts', [])
@@ -579,18 +579,19 @@ def handle_tradelocker_accounts_addition():
                 if cursor.fetchone():
                     continue
                 
-                # Insert new TradeLocker account - NO INITIAL BALANCE, PENDING STATUS
+                # Insert new TradeLocker account - SAVE current_balance, LEAVE starting_balance NULL
                 cursor.execute("""
                     INSERT INTO trading_accounts 
-                    (user_id, account_type, account_id, account_name, 
+                    (user_id, account_type, account_id, account_name, current_balance,
                      tl_email, tl_password, tl_server, tl_token, account_number, accnum, account_env, 
                      is_active, sync_status, created_at, last_updated) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     current_user.id,
                     'tradelocker',
                     account['id'],
                     account.get('name', 'TradeLocker Account'),
+                    float(account.get('balance', 0)) if account.get('balance') else None,  # Save current_balance
                     login_info.get('email', ''),
                     login_info.get('password', ''),
                     login_info.get('server', ''),
