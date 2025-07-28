@@ -147,7 +147,7 @@
                             <h5 class="text-white mb-3">Start trading!</h5>
                             <div class="winner-highlight mb-3">
                                 <span class="material-symbols-outlined me-2 text-warning" style="font-size: 28px;">emoji_events</span>
-                                <span class="text-warning fs-4 fw-bold">The trader with the HIGHEST % GAIN will win [DYNAMIC VALUE]</span>
+                                <span class="text-warning fs-4 fw-bold">The trader with the HIGHEST % GAIN will win the prize!</span>
                             </div>
                             <p style="color: #E5E7EB !important;">
                                 Competition runs from the start date to the end date. Your percentage gain will be calculated based on your starting balance.
@@ -203,6 +203,52 @@
     </div>
 </div>
 
+<!-- Competition Requirements -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <span class="material-symbols-outlined me-2">rule</span>
+                    Competition Requirements
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="requirement-card text-center">
+                            <span class="material-symbols-outlined text-success mb-2" style="font-size: 32px;">attach_money</span>
+                            <h6 style="color: #E5E7EB !important;">Minimum Balance</h6>
+                            <p class="text-success fw-bold mb-0">$100</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="requirement-card text-center">
+                            <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">account_balance</span>
+                            <h6 style="color: #E5E7EB !important;">Account Type</h6>
+                            <p class="text-primary fw-bold mb-0">Live Only</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="requirement-card text-center">
+                            <span class="material-symbols-outlined text-warning mb-2" style="font-size: 32px;">emoji_events</span>
+                            <h6 style="color: #E5E7EB !important;">Winner</h6>
+                            <p class="text-warning fw-bold mb-0">Highest % Gain</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="requirement-card text-center">
+                            <span class="material-symbols-outlined text-info mb-2" style="font-size: 32px;">link</span>
+                            <h6 style="color: #E5E7EB !important;">Registration</h6>
+                            <p class="text-info fw-bold mb-0">Use Our Links</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Actions -->
 <div class="row">
     <div class="col-12">
@@ -231,7 +277,7 @@
 
 {% block scripts %}
 <script>
-// Add smooth scroll to anchor links
+// Add smooth scroll and interactive effects
 document.addEventListener('DOMContentLoaded', function() {
     // Add hover effects to step cards
     const stepCards = document.querySelectorAll('.step-card');
@@ -246,17 +292,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Add hover effects to requirement cards
+    const requirementCards = document.querySelectorAll('.requirement-card');
+    requirementCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.background = 'rgba(255, 255, 255, 0.05)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.background = 'transparent';
+        });
+    });
+
     // Add click tracking for external links
     const externalLinks = document.querySelectorAll('a[target="_blank"]');
     externalLinks.forEach(link => {
         link.addEventListener('click', function() {
-            console.log('External link clicked:', this.href);
+            console.log('External broker link clicked:', this.href);
         });
+    });
+
+    // Add fade-in animation to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
     });
 });
 </script>
 
 <style>
+/* Step Cards */
 .step-card {
     padding: 2rem;
     border-radius: 16px;
@@ -289,6 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
     flex: 1;
 }
 
+/* Broker Cards */
 .broker-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -303,6 +377,21 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: translateY(-2px);
 }
 
+/* Requirement Cards */
+.requirement-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.requirement-card:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
+}
+
+/* Highlight Boxes */
 .funding-highlight {
     display: flex;
     align-items: center;
@@ -321,6 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 1rem 1.5rem;
 }
 
+/* Alerts */
 .alert {
     border-radius: 12px;
     border: none;
@@ -340,12 +430,14 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
+/* Buttons */
 .btn-lg {
     padding: 0.875rem 2rem;
     font-size: 1rem;
     font-weight: 600;
 }
 
+/* Text Gradient */
 .text-gradient-primary {
     background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
     -webkit-background-clip: text;
@@ -353,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background-clip: text;
 }
 
-/* Responsive adjustments */
+/* Responsive Design */
 @media (max-width: 768px) {
     .step-card {
         padding: 1.5rem;
@@ -368,7 +460,8 @@ document.addEventListener('DOMContentLoaded', function() {
         gap: 1rem !important;
     }
     
-    .broker-card {
+    .broker-card,
+    .requirement-card {
         padding: 1rem;
     }
     
@@ -383,6 +476,26 @@ document.addEventListener('DOMContentLoaded', function() {
     .winner-highlight span {
         margin: 0;
     }
+    
+    .fs-4 {
+        font-size: 1.1rem !important;
+    }
+}
+
+/* Additional animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeInUp 0.6s ease-out;
 }
 </style>
 {% endblock %}
