@@ -15,7 +15,7 @@
                             Competition Leaderboard
                         </h3>
                         {% if start_date and end_date %}
-                        <p class="text-muted mb-0">
+                        <p class="mb-0" style="color: #E5E7EB !important;">
                             Competition Period: {{ start_date.strftime('%B %d') }} - {{ end_date.strftime('%B %d, %Y') }}
                         </p>
                         {% endif %}
@@ -23,7 +23,7 @@
                     <div class="col-md-4 text-md-end">
                         <div class="d-flex align-items-center justify-content-md-end">
                             <span class="material-symbols-outlined text-primary me-2">groups</span>
-                            <span class="text-muted">{{ leaderboard|length }} Participants</span>
+                            <span style="color: #E5E7EB !important;">{{ leaderboard|length }} Participants</span>
                         </div>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                             <div style="font-size: 2rem; margin-bottom: 0.5rem;">🥈</div>
                             <h5 class="text-white mb-1">{{ top_three[1].username }}</h5>
                             <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[1].percentage_change) }}%</h4>
-                            <small class="text-white-50">${{ "%.2f"|format(top_three[1].profit) }} profit</small>
+                            <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[1].profit) }} profit</small>
                         </div>
                     </div>
                     
@@ -58,7 +58,7 @@
                             <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👑</div>
                             <h4 class="text-white mb-1">{{ top_three[0].username }}</h4>
                             <h3 class="text-white mb-0">+{{ "%.2f"|format(top_three[0].percentage_change) }}%</h3>
-                            <small class="text-white-50">${{ "%.2f"|format(top_three[0].profit) }} profit</small>
+                            <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[0].profit) }} profit</small>
                         </div>
                     </div>
                     
@@ -68,7 +68,7 @@
                             <div style="font-size: 2rem; margin-bottom: 0.5rem;">🥉</div>
                             <h5 class="text-white mb-1">{{ top_three[2].username }}</h5>
                             <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[2].percentage_change) }}%</h4>
-                            <small class="text-white-50">${{ "%.2f"|format(top_three[2].profit) }} profit</small>
+                            <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[2].profit) }} profit</small>
                         </div>
                     </div>
                 </div>
@@ -166,7 +166,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">groups</span>
-                <h5 class="text-muted mb-1">Total Participants</h5>
+                <h5 style="color: #E5E7EB !important;" class="mb-1">Total Participants</h5>
                 <h3 class="text-gradient-primary mb-0">{{ leaderboard|length }}</h3>
             </div>
         </div>
@@ -175,8 +175,10 @@
         <div class="card text-center">
             <div class="card-body">
                 <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">trending_up</span>
-                <h5 class="text-muted mb-1">Best Performance</h5>
-                <h3 class="positive mb-0">+{{ "%.2f"|format(leaderboard[0].percentage_change) }}%</h3>
+                <h5 style="color: #E5E7EB !important;" class="mb-1">Best Performance</h5>
+                <h3 class="{% if leaderboard[0].percentage_change >= 0 %}positive{% else %}negative{% endif %} mb-0">
+                    {% if leaderboard[0].percentage_change >= 0 %}+{% endif %}{{ "%.2f"|format(leaderboard[0].percentage_change) }}%
+                </h3>
             </div>
         </div>
     </div>
@@ -185,7 +187,7 @@
             <div class="card-body">
                 {% set total_profit = leaderboard | sum(attribute='profit') %}
                 <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">attach_money</span>
-                <h5 class="text-muted mb-1">Total Profits</h5>
+                <h5 style="color: #E5E7EB !important;" class="mb-1">Total Profits</h5>
                 <h3 class="{% if total_profit >= 0 %}positive{% else %}negative{% endif %} mb-0">
                     {% if total_profit >= 0 %}+{% endif %} ${{ "%.2f"|format(total_profit) }}
                 </h3>
@@ -197,7 +199,7 @@
             <div class="card-body">
                 {% set profitable_traders = leaderboard | selectattr('profit', '>', 0) | list | length %}
                 <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">pie_chart</span>
-                <h5 class="text-muted mb-1">Profitable Traders</h5>
+                <h5 style="color: #E5E7EB !important;" class="mb-1">Profitable Traders</h5>
                 <h3 class="positive mb-0">{{ profitable_traders }}/{{ leaderboard|length }}</h3>
             </div>
         </div>
@@ -210,9 +212,9 @@
     <div class="col-md-6">
         <div class="card text-center">
             <div class="card-body py-5">
-                <span class="material-symbols-outlined text-muted mb-3" style="font-size: 64px;">leaderboard</span>
-                <h3 class="text-muted mb-3">No Participants Yet</h3>
-                <p class="text-muted mb-4">Be the first to join the trading competition!</p>
+                <span class="material-symbols-outlined mb-3" style="font-size: 64px; color: #E5E7EB;">leaderboard</span>
+                <h3 style="color: #E5E7EB !important;" class="mb-3">No Participants Yet</h3>
+                <p style="color: #D1D5DB !important;" class="mb-4">Be the first to join the trading competition!</p>
                 <a href="{{ url_for('accounts') }}" class="btn btn-primary">
                     <span class="material-symbols-outlined me-2">add</span>
                     Join Competition
