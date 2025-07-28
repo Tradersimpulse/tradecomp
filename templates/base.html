@@ -823,7 +823,7 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ url_for('rules') }}" class="nav-link {% if request.endpoint == 'rules' %}active{% endif %}">
+                    <a href="{{ url_for('get_rules') }}" class="nav-link {% if request.endpoint == 'get_rules' %}active{% endif %}">
                         <span class="material-symbols-outlined">gavel</span>
                         <span class="nav-text">Rules</span>
                     </a>
@@ -872,7 +872,7 @@
                     {% if request.endpoint == 'dashboard' %}Dashboard
                     {% elif request.endpoint == 'leaderboard' %}Leaderboard
                     {% elif request.endpoint == 'accounts' %}My Account
-                    {% elif request.endpoint == 'rules' %}Rules
+                    {% elif request.endpoint == 'get_rules' %}Rules
                     {% elif request.endpoint == 'admin' %}Admin Panel
                     {% else %}Trading Competition{% endif %}
                 {% endblock %}
