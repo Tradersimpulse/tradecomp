@@ -634,7 +634,7 @@ def handle_tradelocker_accounts_addition():
         return redirect(url_for('accounts'))
         
 def handle_mt5_connection():
-    """Handle MT5 account addition - No initial balance, pending status"""
+    """Handle MT5 account addition - No balance data available initially"""
     try:
         account_number = request.form.get('account_number')
         password = request.form.get('password')
@@ -674,7 +674,7 @@ def handle_mt5_connection():
         account_count = cursor.fetchone()[0]
         is_active = 1 if account_count == 0 else 0
         
-        # Insert new MT5 account - NO INITIAL BALANCE, PENDING STATUS
+        # Insert new MT5 account - NO BALANCE DATA AVAILABLE INITIALLY
         cursor.execute("""
             INSERT INTO trading_accounts 
             (user_id, account_type, account_number, mt5_password, mt5_server, 
