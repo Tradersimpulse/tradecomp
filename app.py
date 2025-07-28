@@ -13,6 +13,8 @@ import requests
 import logging
 from werkzeug.security import generate_password_hash, check_password_hash
 from tradelocker import TradeLocker
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 # Load environment variables
 load_dotenv()
@@ -45,6 +47,21 @@ db_config = {
     'database': os.getenv('DB_NAME'),
     'port': int(os.getenv('DB_PORT', 3306))
 }
+
+# Email configuration (add after app.secret_key line)
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'False').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+
+# Initialize Flask-Mail
+mail = Mail(app)
+
+# Token serializer for password reset
+serializer = URLSafeTimedSerializer(app.secret_key)
 
 # Updated User class with multi-account support
 class User(UserMixin):
@@ -169,6 +186,52 @@ def calculate_percentage_change(starting_balance, current_balance):
     if starting_balance == 0:
         return 0
     return ((current_balance - starting_balance) / starting_balance) * 100
+
+def send_password_reset_email(user_email, reset_url):
+    """Send password reset email"""
+    try:
+        msg = Message(
+            'Password Reset Request - Trading Competition',
+            recipients=[user_email]
+        )
+        msg.body = f'''To reset your password, visit the following link:
+{reset_url}
+
+If you did not make this request, simply ignore this email and no changes will be made.
+
+This link will expire in 1 hour.
+
+Trading Competition Team
+'''
+        msg.html = f'''
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p>You have requested to reset your password for the Trading Competition platform.</p>
+            <p>Click the button below to reset your password:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{reset_url}" 
+                   style="background-color: #007bff; color: white; padding: 12px 30px; 
+                          text-decoration: none; border-radius: 5px; display: inline-block;">
+                    Reset Password
+                </a>
+            </div>
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #666;">{reset_url}</p>
+            <hr style="margin: 30px 0; border: 1px solid #eee;">
+            <p style="color: #999; font-size: 14px;">
+                If you did not request this password reset, please ignore this email. 
+                This link will expire in 1 hour.
+            </p>
+            <p style="color: #999; font-size: 14px;">
+                Trading Competition Team
+            </p>
+        </div>
+        '''
+        mail.send(msg)
+        return True
+    except Exception as e:
+        logger.error(f"Error sending password reset email: {e}")
+        return False
 
 def get_leaderboard_data():
     """Get leaderboard data with rankings"""
@@ -830,6 +893,113 @@ def clear_tradelocker_session():
     session.pop('tradelocker_login_info', None)
     
     return redirect(url_for('accounts'))
+
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        if not email:
+            flash('Email is required', 'error')
+            return render_template('forgot_password.html')
+        
+        try:
+            conn = get_connection()
+            if not conn:
+                flash('Database connection error', 'error')
+                return render_template('forgot_password.html')
+            
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT id, email FROM users WHERE email = %s", (email,))
+            user_data = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
+            if user_data:
+                # Generate password reset token
+                token = serializer.dumps(user_data['email'], salt='password-reset-salt')
+                
+                # Create reset URL
+                reset_url = url_for('reset_password', token=token, _external=True)
+                
+                # Send password reset email
+                if send_password_reset_email(user_data['email'], reset_url):
+                    flash('Password reset instructions have been sent to your email', 'success')
+                else:
+                    flash('Error sending password reset email. Please try again.', 'error')
+            else:
+                # Don't reveal whether email exists or not for security
+                flash('If an account with that email exists, password reset instructions have been sent', 'info')
+            
+        except Exception as e:
+            logger.error(f"Forgot password error: {e}")
+            flash('An error occurred. Please try again.', 'error')
+        
+        return redirect(url_for('login'))
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    try:
+        # Verify token (expires in 1 hour)
+        email = serializer.loads(token, salt='password-reset-salt', max_age=3600)
+    except SignatureExpired:
+        flash('The password reset link has expired', 'error')
+        return redirect(url_for('forgot_password'))
+    except BadSignature:
+        flash('Invalid password reset link', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not password or not confirm_password:
+            flash('Both password fields are required', 'error')
+            return render_template('reset_password.html', token=token)
+        
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('reset_password.html', token=token)
+        
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long', 'error')
+            return render_template('reset_password.html', token=token)
+        
+        try:
+            conn = get_connection()
+            if not conn:
+                flash('Database connection error', 'error')
+                return render_template('reset_password.html', token=token)
+            
+            cursor = conn.cursor()
+            
+            # Update password
+            hashed_password = generate_password_hash(password)
+            cursor.execute("""
+                UPDATE users SET password = %s WHERE email = %s
+            """, (hashed_password, email))
+            
+            if cursor.rowcount > 0:
+                conn.commit()
+                flash('Your password has been updated successfully', 'success')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('login'))
+            else:
+                flash('User not found', 'error')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('forgot_password'))
+            
+        except Exception as e:
+            logger.error(f"Reset password error: {e}")
+            flash('An error occurred while updating your password', 'error')
+    
+    return render_template('reset_password.html', token=token)
+    
 # Add route to set default account (from Traders Impulse pattern)
 @app.route('/set_default_account', methods=['POST'])
 @login_required
@@ -1085,4 +1255,6 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # For Heroku deployment
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
