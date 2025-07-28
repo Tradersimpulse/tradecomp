@@ -599,7 +599,7 @@ def handle_tradelocker_accounts_addition():
                     account['id'],
                     account.get('acc_num', account['id']),
                     login_info.get('env', 'demo'),
-                    1 if added_count == 0 else 0,
+                    1,  # is_active - always set new accounts to active
                     'pending',
                     datetime.now(),
                     datetime.now()
@@ -669,10 +669,8 @@ def handle_mt5_connection():
             conn.close()
             return redirect(url_for('accounts'))
         
-        # Determine if this will be the active account
-        cursor.execute("SELECT COUNT(*) as count FROM trading_accounts WHERE user_id = %s", (current_user.id,))
-        account_count = cursor.fetchone()[0]
-        is_active = 1 if account_count == 0 else 0
+        # Set all new accounts as active
+        is_active = 1
         
         # Insert new MT5 account - NO BALANCE DATA AVAILABLE INITIALLY
         cursor.execute("""
