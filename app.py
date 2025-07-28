@@ -645,7 +645,7 @@ def handle_mt5_connection():
             return redirect(url_for('accounts'))
         
         # Validate server
-        allowed_servers = ['Plexytrade-Server01', 'Tradesmart-Server01']
+        allowed_servers = ['PlexyTrade-Server01', 'TradeSmart-Server01']
         if server not in allowed_servers:
             flash('Invalid server selection', 'error')
             return redirect(url_for('accounts'))
