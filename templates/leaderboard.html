@@ -14,7 +14,7 @@
                             <span class="material-symbols-outlined me-2">leaderboard</span>
                             Competition Leaderboard
                             {% if settings and settings.prize_amount %}
-                                <span class="badge bg-gradient-warning fs-6 ms-2">
+                                <span class="badge bg-gradient-purple fs-6 ms-2">
                                     <span class="material-symbols-outlined me-1" style="font-size: 16px;">emoji_events</span>
                                     ${{ "%.0f"|format(settings.prize_amount) }} Prize
                                 </span>
@@ -111,7 +111,7 @@
                         </thead>
                         <tbody>
                             {% for trader in leaderboard %}
-                            <tr class="{% if trader.rank <= 3 %}table-warning{% endif %} {% if current_user.is_authenticated and trader.username == current_user.username %}table-info{% endif %}">
+                            <tr class="{% if trader.rank <= 3 %}table-elite{% endif %} {% if current_user.is_authenticated and trader.username == current_user.username %}table-info{% endif %}">
                                 <td>
                                     <div class="d-flex align-items-center">
                                         {% if trader.rank == 1 %}
@@ -241,7 +241,7 @@ function refreshLeaderboard() {
 // Auto-refresh every 5 minutes
 setInterval(refreshLeaderboard, 300000);
 
-// Add custom styles for avatar
+// Add custom styles for avatar and modern color scheme
 document.addEventListener('DOMContentLoaded', function() {
     const style = document.createElement('style');
     style.textContent = `
@@ -256,14 +256,42 @@ document.addEventListener('DOMContentLoaded', function() {
         .podium-card:hover {
             transform: scale(1.05) !important;
         }
-        .table-warning {
-            background-color: rgba(255, 193, 7, 0.1) !important;
+        
+        /* Modern purple gradient for top 3 highlighting */
+        .table-elite {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%) !important;
+            border-left: 3px solid #8B5CF6 !important;
         }
+        
+        /* Purple gradient badge */
+        .bg-gradient-purple {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%) !important;
+            color: white !important;
+        }
+        
+        /* Alternative modern grey option */
+        .table-elite-grey {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.15) 0%, rgba(75, 85, 99, 0.15) 100%) !important;
+            border-left: 3px solid #6B7280 !important;
+        }
+        
+        .bg-gradient-grey {
+            background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%) !important;
+            color: white !important;
+        }
+        
         .table-info {
             background-color: rgba(13, 202, 240, 0.1) !important;
+        }
+        
+        /* Enhanced hover effects */
+        .table-elite:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%) !important;
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
         }
     `;
     document.head.appendChild(style);
 });
 </script>
-{% endblock %}
+{% endblock %>
