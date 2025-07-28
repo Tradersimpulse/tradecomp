@@ -191,6 +191,44 @@
         50% { opacity: 0.7; }
     }
 
+    /* Custom tooltip styling */
+    .tooltip {
+        font-size: 0.875rem;
+    }
+
+    .tooltip .tooltip-inner {
+        background-color: rgba(20, 20, 30, 0.95);
+        color: #fff;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        max-width: 300px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .tooltip.bs-tooltip-top .tooltip-arrow::before {
+        border-top-color: rgba(20, 20, 30, 0.95);
+    }
+
+    .tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+        border-bottom-color: rgba(20, 20, 30, 0.95);
+    }
+
+    .tooltip.bs-tooltip-start .tooltip-arrow::before {
+        border-left-color: rgba(20, 20, 30, 0.95);
+    }
+
+    .tooltip.bs-tooltip-end .tooltip-arrow::before {
+        border-right-color: rgba(20, 20, 30, 0.95);
+    }
+
+    /* Make pending badge more hover-friendly */
+    .status-badge.pending {
+        cursor: help;
+        position: relative;
+    }
+
     /* Action buttons */
     .action-btn {
         padding: 0.5rem 1rem;
@@ -575,7 +613,10 @@
                                         {% if account.sync_status == 'synced' %}
                                         <span class="status-badge synced">Synced</span>
                                         {% else %}
-                                        <span class="status-badge pending">Pending</span>
+                                        <span class="status-badge pending" 
+                                              title="Syncing account data with your broker. Status will update to 'Synced' once complete (usually within 15 minutes)."
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-placement="top">Pending</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -871,6 +912,12 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
     // Global state
     let currentStep = 1;
     let selectedAccountType = null;
