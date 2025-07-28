@@ -20,6 +20,14 @@
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
+                    
+                    <!-- Forgot Password Link -->
+                    <div class="mb-3 text-end">
+                        <a href="{{ url_for('forgot_password') }}" class="text-gradient-primary text-decoration-none small">
+                            Forgot your password?
+                        </a>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary w-100 mb-3">Sign In</button>
                 </form>
                 
