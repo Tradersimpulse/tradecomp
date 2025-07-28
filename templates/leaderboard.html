@@ -14,7 +14,7 @@
                             <span class="material-symbols-outlined me-2">leaderboard</span>
                             Competition Leaderboard
                             {% if settings and settings.prize_amount %}
-                                <span class="badge bg-gradient-purple fs-6 ms-2">
+                                <span class="badge bg-gradient-warning fs-6 ms-2">
                                     <span class="material-symbols-outlined me-1" style="font-size: 16px;">emoji_events</span>
                                     ${{ "%.0f"|format(settings.prize_amount) }} Prize
                                 </span>
@@ -111,7 +111,7 @@
                         </thead>
                         <tbody>
                             {% for trader in leaderboard %}
-                            <tr class="{% if trader.rank <= 3 %}table-elite{% endif %} {% if current_user.is_authenticated and trader.username == current_user.username %}table-info{% endif %}">
+                            <tr class="table-warning {% if current_user.is_authenticated and trader.username == current_user.username %}table-info{% endif %}">
                                 <td>
                                     <div class="d-flex align-items-center">
                                         {% if trader.rank == 1 %}
@@ -256,21 +256,17 @@ document.addEventListener('DOMContentLoaded', function() {
         .podium-card:hover {
             transform: scale(1.05) !important;
         }
-        .table-elite {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%) !important;
+        .table-warning {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%) !important;
             border-left: 3px solid #8B5CF6 !important;
         }
-        .bg-gradient-purple {
-            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%) !important;
-            color: white !important;
+        .table-warning:hover {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%) !important;
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
         }
         .table-info {
             background-color: rgba(13, 202, 240, 0.1) !important;
-        }
-        .table-elite:hover {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%) !important;
-            transform: translateY(-1px);
-            transition: all 0.2s ease;
         }
     `;
     document.head.appendChild(style);
