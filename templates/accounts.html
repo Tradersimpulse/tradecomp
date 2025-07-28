@@ -278,6 +278,19 @@
         box-shadow: 0 8px 15px rgba(239, 68, 68, 0.3);
     }
 
+    /* Current Balance styling */
+    .balance-amount {
+        font-weight: 600;
+        font-family: 'Monaco', 'Menlo', monospace;
+        color: #10B981;
+        font-size: 1rem;
+    }
+
+    .balance-not-synced {
+        color: rgba(255, 255, 255, 0.5);
+        font-style: italic;
+    }
+
     /* Account type selection */
     .account-type-selector {
         background: rgba(255, 255, 255, 0.03);
@@ -606,7 +619,7 @@
                                 <th>Account ID</th>
                                 <th>Type</th>
                                 <th>Sync Status</th>
-                                <th>Actions</th>
+                                <th>Current Balance</th>
                                 <th>Remove</th>
                             </tr>
                         </thead>
@@ -636,16 +649,11 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <form method="post" class="d-inline">
-                                            <input type="hidden" name="action" value="set_default">
-                                            <input type="hidden" name="account_id" value="{{ account.account_id }}">
-                                            <button type="submit" class="action-btn action-btn-primary">
-                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
-                                                    star
-                                                </span>
-                                                Set Default
-                                            </button>
-                                        </form>
+                                        {% if account.current_balance %}
+                                            <span class="balance-amount">${{ "%.2f"|format(account.current_balance) }}</span>
+                                        {% else %}
+                                            <span class="balance-not-synced">Not synced</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <button type="button" 
@@ -1198,92 +1206,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Load user accounts and populate table
-    function loadUserAccounts() {
-        fetch('/api/accounts')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    populateAccountsTable(data.accounts);
-                } else {
-                    console.error('Failed to load accounts:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading accounts:', error);
-            });
-    }
-
-    // Populate the accounts table
-    function populateAccountsTable(accounts) {
-        const tableBody = document.getElementById('accounts-table-body');
-        
-        if (accounts.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center py-4">
-                        <div class="empty-state">
-                            <span class="material-symbols-outlined">account_balance_wallet</span>
-                            <h5>No accounts connected yet</h5>
-                            <p>Connect your first trading account below to join the competition</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        tableBody.innerHTML = accounts.map(account => {
-            const syncStatusBadge = account.sync_status === 'synced' 
-                ? '<span class="status-badge synced">Synced</span>'
-                : '<span class="status-badge pending">Pending</span>';
-            
-            const activeBadge = account.is_active 
-                ? '<span class="status-badge current">Active</span>'
-                : '<span style="color: rgba(255, 255, 255, 0.5);">Inactive</span>';
-
-            return `
-                <tr data-account-id="${account.account_id}" id="account-row-${account.account_id}">
-                    <td>
-                        <span class="account-id">${account.account_id}</span>
-                    </td>
-                    <td>
-                        <span style="color: rgba(255, 255, 255, 0.7);">${account.account_type}</span>
-                    </td>
-                    <td>${syncStatusBadge}</td>
-                    <td>${activeBadge}</td>
-                    <td>
-                        <form method="post" class="d-inline">
-                            <input type="hidden" name="action" value="set_default">
-                            <input type="hidden" name="account_id" value="${account.account_id}">
-                            <button type="submit" class="action-btn action-btn-primary">
-                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">star</span>
-                                Set Default
-                            </button>
-                        </form>
-                    </td>
-                    <td>
-                        <button type="button" 
-                                class="action-btn action-btn-danger remove-account-btn" 
-                                data-account-id="${account.account_id}"
-                                title="Remove account"
-                                id="remove-btn-${account.account_id}">
-                            <span class="material-symbols-outlined me-1" style="font-size: 16px;">delete</span>
-                            Remove
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        // Re-attach event listeners for remove buttons
-        document.querySelectorAll('.remove-account-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const accountId = this.dataset.accountId;
-                removeAccount(accountId);
-            });
-        });
-    }
     function showToast(message, type = 'info') {
         const alertClass = type === 'error' ? 'danger' : type;
         const icon = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
