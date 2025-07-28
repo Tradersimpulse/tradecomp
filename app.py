@@ -145,6 +145,25 @@ def get_competition_dates():
     
     return None, None
 
+def get_competition_settings():
+    """Get all competition settings from database"""
+    try:
+        conn = get_connection()
+        if not conn:
+            return None
+        
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM competition_settings WHERE id = 1")
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error getting competition settings: {e}")
+        return None
+
+
 def calculate_percentage_change(starting_balance, current_balance):
     """Calculate percentage change"""
     if starting_balance == 0:
@@ -377,8 +396,11 @@ def dashboard():
             if leaderboard:
                 top_percentage = leaderboard[0]['percentage_change']
         
-        # Get competition dates
-        start_date, end_date = get_competition_dates()
+        # Get competition settings (includes dates, prize, referral link)
+        settings = get_competition_settings()
+        start_date = settings['start_date'] if settings else None
+        end_date = settings['end_date'] if settings else None
+        prize_amount = settings['prize_amount'] if settings else None
         
         return render_template('dashboard.html', 
                              account=account_details,
@@ -388,14 +410,18 @@ def dashboard():
                              user_position=user_position,
                              top_percentage=top_percentage,
                              start_date=start_date,
-                             end_date=end_date)
+                             end_date=end_date,
+                             prize_amount=prize_amount,
+                             settings=settings)
                              
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
         return render_template('dashboard.html', 
                              has_account=False, 
                              account=None,
-                             user_accounts=[])
+                             user_accounts=[],
+                             prize_amount=None,
+                             settings=None)
 
 @app.route('/accounts', methods=['GET', 'POST'])
 @login_required  
@@ -889,12 +915,19 @@ def handle_regular_account_setup():
 @app.route('/leaderboard')
 def leaderboard():
     leaderboard_data = get_leaderboard_data()
-    start_date, end_date = get_competition_dates()
+    
+    # Get competition settings (includes dates and prize)
+    settings = get_competition_settings()
+    start_date = settings['start_date'] if settings else None
+    end_date = settings['end_date'] if settings else None
+    prize_amount = settings['prize_amount'] if settings else None
     
     return render_template('leaderboard.html', 
                          leaderboard=leaderboard_data,
                          start_date=start_date,
-                         end_date=end_date)
+                         end_date=end_date,
+                         prize_amount=prize_amount,
+                         settings=settings)
 
 @app.route('/admin')
 @login_required
@@ -943,6 +976,17 @@ def update_admin_settings():
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
         referral_link = request.form.get('referral_link')
+        prize_amount = request.form.get('prize_amount')
+        
+        # Convert prize_amount to float if provided, otherwise set to None
+        if prize_amount and prize_amount.strip():
+            try:
+                prize_amount = float(prize_amount)
+            except ValueError:
+                flash('Invalid prize amount format', 'error')
+                return redirect(url_for('admin'))
+        else:
+            prize_amount = None
         
         conn = get_connection()
         if not conn:
@@ -950,11 +994,22 @@ def update_admin_settings():
             return redirect(url_for('admin'))
         
         cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE competition_settings 
-            SET start_date = %s, end_date = %s, referral_link = %s 
-            WHERE id = 1
-        """, (start_date, end_date, referral_link))
+        
+        # Check if settings record exists
+        cursor.execute("SELECT id FROM competition_settings WHERE id = 1")
+        if cursor.fetchone():
+            # Update existing record
+            cursor.execute("""
+                UPDATE competition_settings 
+                SET start_date = %s, end_date = %s, referral_link = %s, prize_amount = %s 
+                WHERE id = 1
+            """, (start_date, end_date, referral_link, prize_amount))
+        else:
+            # Insert new record
+            cursor.execute("""
+                INSERT INTO competition_settings (id, start_date, end_date, referral_link, prize_amount) 
+                VALUES (1, %s, %s, %s, %s)
+            """, (start_date, end_date, referral_link, prize_amount))
         
         conn.commit()
         cursor.close()
@@ -1012,15 +1067,16 @@ def get_rules():
     
 @app.route('/rules')
 def rules():
-    return render_template('rules.html')
-# Also add a route to clear any stale flash messages
-@app.route('/clear-messages')
-def clear_messages():
-    """Clear any flash messages and redirect to accounts"""
-    # This will clear any existing flash messages
-    list(get_flashed_messages())  # Consuming the messages clears them
-    return redirect(url_for('accounts'))
-
+    # Get competition settings for referral link and prize amount
+    settings = get_competition_settings()
+    prize_amount = settings['prize_amount'] if settings else None
+    referral_link = settings['referral_link'] if settings else None
+    
+    return render_template('rules.html',
+                         prize_amount=prize_amount,
+                         referral_link=referral_link,
+                         settings=settings)
+    
 @app.route('/logout')
 @login_required
 def logout():
