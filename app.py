@@ -514,14 +514,11 @@ def handle_tradelocker_connection():
         return jsonify({'success': False, 'error': f"Connection failed: {str(e)}"})
 
 def handle_tradelocker_accounts_addition():
-    """Handle adding multiple selected TradeLocker accounts to database"""
+    """Handle adding multiple selected TradeLocker accounts to database - No initial balance, pending status"""
     try:
         selected_account_ids = request.form.getlist('selected_accounts')
         tradelocker_accounts = session.get('tradelocker_accounts', [])
         login_info = session.get('tradelocker_login_info', {})
-        
-        print(f"DEBUG: Selected IDs: {selected_account_ids}")
-        print(f"DEBUG: Session accounts: {len(tradelocker_accounts)}")
         
         if not selected_account_ids or not tradelocker_accounts:
             flash('No accounts selected or session expired', 'error')
@@ -548,8 +545,6 @@ def handle_tradelocker_accounts_addition():
         
         for account in selected_accounts:
             try:
-                print(f"DEBUG: Processing account {account['id']}")
-                
                 # Check if account already exists for this user
                 cursor.execute("""
                     SELECT id FROM trading_accounts 
@@ -557,43 +552,35 @@ def handle_tradelocker_accounts_addition():
                 """, (current_user.id, account['id']))
                 
                 if cursor.fetchone():
-                    print(f"DEBUG: Account {account['id']} already exists, skipping")
                     continue
                 
-                # Insert new TradeLocker account
-                insert_sql = """
+                # Insert new TradeLocker account - NO INITIAL BALANCE, PENDING STATUS
+                cursor.execute("""
                     INSERT INTO trading_accounts 
-                    (user_id, account_type, account_id, account_name, starting_balance, current_balance, 
-                     tl_email, tl_password, tl_server, tl_token, account_number, account_env, 
-                     is_active, created_at, last_updated) 
+                    (user_id, account_type, account_id, account_name, 
+                     tl_email, tl_password, tl_server, tl_token, account_number, accnum, account_env, 
+                     is_active, sync_status, created_at, last_updated) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                
-                values = (
+                """, (
                     current_user.id,
                     'tradelocker',
                     account['id'],
                     account.get('name', 'TradeLocker Account'),
-                    float(account.get('balance', 100.0)),
-                    float(account.get('balance', 100.0)),
                     login_info.get('email', ''),
                     login_info.get('password', ''),
                     login_info.get('server', ''),
                     session.get('tradelocker_token', ''),
+                    account['id'],
                     account.get('acc_num', account['id']),
                     login_info.get('env', 'demo'),
-                    1 if added_count == 0 else 0,  # First account is active
+                    1 if added_count == 0 else 0,
+                    'pending',
                     datetime.now(),
                     datetime.now()
-                )
-                
-                print(f"DEBUG: Inserting account with values: {values}")
-                cursor.execute(insert_sql, values)
+                ))
                 added_count += 1
-                print(f"DEBUG: Successfully inserted account {account['id']}")
                 
             except Exception as e:
-                print(f"DEBUG: Error adding account {account['id']}: {str(e)}")
                 logger.error(f"Error adding account {account['id']}: {str(e)}")
                 continue
         
@@ -602,8 +589,6 @@ def handle_tradelocker_accounts_addition():
         cursor.close()
         conn.close()
         
-        print(f"DEBUG: Total accounts added: {added_count}")
-        
         # Clear session data
         session.pop('tradelocker_accounts', None)
         session.pop('tradelocker_token', None)
@@ -611,7 +596,7 @@ def handle_tradelocker_accounts_addition():
         session.pop('tradelocker_login_info', None)
         
         if added_count > 0:
-            flash(f'Successfully added {added_count} trading account(s) to the competition!', 'success')
+            flash(f'Successfully added {added_count} trading account(s)! Waiting for balance sync...', 'success')
         else:
             flash('No new accounts were added. They may already exist.', 'warning')
         
@@ -621,7 +606,7 @@ def handle_tradelocker_accounts_addition():
         logger.error(f"TradeLocker accounts addition error: {str(e)}")
         flash(f"Error adding accounts: {str(e)}", 'error')
         return redirect(url_for('accounts'))
-
+        
 def handle_mt5_connection():
     """Handle MT5 account addition - No initial balance, pending status"""
     try:
