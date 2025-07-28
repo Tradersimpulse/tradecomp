@@ -439,7 +439,6 @@ def handle_tradelocker_connection():
         logger.info(f"Connecting to TradeLocker: {email}, {account_type}, {server}")
         
         # Initialize TradeLocker API
-        from tradelocker import TradeLocker
         tl = TradeLocker(env=account_type)
         
         # Get JWT token
@@ -488,7 +487,7 @@ def handle_tradelocker_connection():
                     'balance': str(account_balance),
                     'currency': currency,
                     'acc_num': str(account.get('accNum', account_id)),
-                    'raw_data': account  # Store raw data for later use
+                    'raw_data': account
                 })
         
         # Store in session for account selection
@@ -497,7 +496,7 @@ def handle_tradelocker_connection():
         session['tradelocker_env'] = account_type
         session['tradelocker_login_info'] = {
             'email': email,
-            'password': password,  # Store securely in production
+            'password': password,
             'server': server,
             'env': account_type
         }
@@ -515,11 +514,14 @@ def handle_tradelocker_connection():
         return jsonify({'success': False, 'error': f"Connection failed: {str(e)}"})
 
 def handle_tradelocker_accounts_addition():
-    """Handle adding multiple selected TradeLocker accounts"""
+    """Handle adding multiple selected TradeLocker accounts to database"""
     try:
         selected_account_ids = request.form.getlist('selected_accounts')
         tradelocker_accounts = session.get('tradelocker_accounts', [])
         login_info = session.get('tradelocker_login_info', {})
+        
+        print(f"DEBUG: Selected IDs: {selected_account_ids}")
+        print(f"DEBUG: Session accounts: {len(tradelocker_accounts)}")
         
         if not selected_account_ids or not tradelocker_accounts:
             flash('No accounts selected or session expired', 'error')
@@ -546,6 +548,8 @@ def handle_tradelocker_accounts_addition():
         
         for account in selected_accounts:
             try:
+                print(f"DEBUG: Processing account {account['id']}")
+                
                 # Check if account already exists for this user
                 cursor.execute("""
                     SELECT id FROM trading_accounts 
@@ -553,42 +557,52 @@ def handle_tradelocker_accounts_addition():
                 """, (current_user.id, account['id']))
                 
                 if cursor.fetchone():
-                    logger.warning(f"Account {account['id']} already exists for user {current_user.id}")
+                    print(f"DEBUG: Account {account['id']} already exists, skipping")
                     continue
                 
                 # Insert new TradeLocker account
-                cursor.execute("""
+                insert_sql = """
                     INSERT INTO trading_accounts 
                     (user_id, account_type, account_id, account_name, starting_balance, current_balance, 
                      tl_email, tl_password, tl_server, tl_token, account_number, account_env, 
                      is_active, created_at, last_updated) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
+                """
+                
+                values = (
                     current_user.id,
                     'tradelocker',
                     account['id'],
-                    account['name'],
-                    float(account['balance']) if account['balance'] else 100.0,
-                    float(account['balance']) if account['balance'] else 100.0,
+                    account.get('name', 'TradeLocker Account'),
+                    float(account.get('balance', 100.0)),
+                    float(account.get('balance', 100.0)),
                     login_info.get('email', ''),
-                    login_info.get('password', ''),  # Consider encryption in production
+                    login_info.get('password', ''),
                     login_info.get('server', ''),
                     session.get('tradelocker_token', ''),
-                    account['acc_num'],
+                    account.get('acc_num', account['id']),
                     login_info.get('env', 'demo'),
                     1 if added_count == 0 else 0,  # First account is active
                     datetime.now(),
                     datetime.now()
-                ))
+                )
+                
+                print(f"DEBUG: Inserting account with values: {values}")
+                cursor.execute(insert_sql, values)
                 added_count += 1
+                print(f"DEBUG: Successfully inserted account {account['id']}")
                 
             except Exception as e:
+                print(f"DEBUG: Error adding account {account['id']}: {str(e)}")
                 logger.error(f"Error adding account {account['id']}: {str(e)}")
                 continue
         
+        # Commit the changes
         conn.commit()
         cursor.close()
         conn.close()
+        
+        print(f"DEBUG: Total accounts added: {added_count}")
         
         # Clear session data
         session.pop('tradelocker_accounts', None)
@@ -766,6 +780,7 @@ def remove_account():
     except Exception as e:
         logger.error(f"Error removing account: {e}")
         return jsonify({'success': False, 'error': f'Error removing account: {str(e)}'})
+
 
 # Add the TradeLocker class if not already present
 class TradeLocker:
