@@ -47,7 +47,7 @@
                             <div class="row justify-content-center">
                                 <div class="col-md-6 mb-3">
                                     <div class="broker-card">
-                                        <a href="https://plexytrade.com/?t=TBZp1B&term=register" target="_blank" class="btn btn-primary w-100">
+                                        <a href="{{ settings.referral_link if settings and settings.referral_link else 'https://plexytrade.com/?t=TBZp1B&term=register' }}" target="_blank" class="btn btn-primary w-100">
                                             <span class="material-symbols-outlined me-2">open_in_new</span>
                                             Register at PlexyTrade
                                         </a>
@@ -192,28 +192,51 @@
             </div>
             <div class="card-body">
                 <div class="row">
+                    {% if settings and settings.prize_amount %}
+                    <div class="col-md-2 mb-3">
+                        <div class="requirement-card text-center">
+                            <span class="material-symbols-outlined text-warning mb-2" style="font-size: 32px;">emoji_events</span>
+                            <h6 style="color: #E5E7EB !important;">Prize Pool</h6>
+                            <p class="text-warning fw-bold mb-0">${{ "%.0f"|format(settings.prize_amount) }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                    {% else %}
                     <div class="col-md-3 mb-3">
+                    {% endif %}
                         <div class="requirement-card text-center">
                             <span class="material-symbols-outlined text-success mb-2" style="font-size: 32px;">attach_money</span>
                             <h6 style="color: #E5E7EB !important;">Minimum Balance</h6>
                             <p class="text-success fw-bold mb-0">$100</p>
                         </div>
                     </div>
+                    {% if settings and settings.prize_amount %}
+                    <div class="col-md-2 mb-3">
+                    {% else %}
                     <div class="col-md-3 mb-3">
+                    {% endif %}
                         <div class="requirement-card text-center">
                             <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">account_balance</span>
                             <h6 style="color: #E5E7EB !important;">Account Type</h6>
                             <p class="text-primary fw-bold mb-0">Live Only</p>
                         </div>
                     </div>
+                    {% if settings and settings.prize_amount %}
+                    <div class="col-md-2 mb-3">
+                    {% else %}
                     <div class="col-md-3 mb-3">
+                    {% endif %}
                         <div class="requirement-card text-center">
                             <span class="material-symbols-outlined text-warning mb-2" style="font-size: 32px;">emoji_events</span>
                             <h6 style="color: #E5E7EB !important;">Winner</h6>
                             <p class="text-warning fw-bold mb-0">Highest % Gain</p>
-                        </div>
+                        </div>  
                     </div>
+                    {% if settings and settings.prize_amount %}
+                    <div class="col-md-2 mb-3">
+                    {% else %}
                     <div class="col-md-3 mb-3">
+                    {% endif %}
                         <div class="requirement-card text-center">
                             <span class="material-symbols-outlined text-info mb-2" style="font-size: 32px;">link</span>
                             <h6 style="color: #E5E7EB !important;">Registration</h6>
