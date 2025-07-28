@@ -768,18 +768,9 @@
             
             <form method="post" id="tl-connect-form">
                 <input type="hidden" name="action" value="connect_tradelocker">
+                <input type="hidden" name="account_type" value="live">
 
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group-modern">
-                            <label for="tl_account_type" class="form-label-modern">Account Type</label>
-                            <select class="form-select-modern" id="tl_account_type" name="account_type" required>
-                                <option value="">Select Account Type</option>
-                                <option value="demo">Demo Account</option>
-                                <option value="live">Live Account (Required for Competition)</option>
-                            </select>
-                        </div>
-                    </div>
                     <div class="col-md-6">
                         <div class="form-group-modern">
                             <label for="tl_email" class="form-label-modern">Email Address</label>
@@ -787,9 +778,6 @@
                                    placeholder="Enter your TradeLocker email" required>
                         </div>
                     </div>
-                </div>
-
-                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group-modern">
                             <label for="tl_password" class="form-label-modern">Password</label>
@@ -797,11 +785,24 @@
                                    placeholder="Enter your password" required>
                         </div>
                     </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group-modern">
                             <label for="tl_server" class="form-label-modern">Server</label>
                             <input type="text" class="form-control-modern" id="tl_server" name="server" 
                                    placeholder="Enter your TradeLocker server" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <!-- Live Account Notice -->
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">Account Type</label>
+                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 0.875rem 1rem; color: #10B981; display: flex; align-items: center;">
+                                <span class="material-symbols-outlined me-2" style="font-size: 1.2rem;">verified</span>
+                                <span style="font-weight: 600;">Live Account Required</span>
+                            </div>
                         </div>
                     </div>
                 </div>
