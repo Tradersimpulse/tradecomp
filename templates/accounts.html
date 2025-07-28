@@ -626,17 +626,17 @@
                         <tbody>
                             {% if user_accounts %}
                                 {% for account in user_accounts %}
-                                <tr data-account-id="{{ account.account_id }}" id="account-row-{{ account.account_id }}">
+                                <tr data-account-id="{{ account['account_id'] }}" id="account-row-{{ account['account_id'] }}">
                                     <td>
-                                        <span class="account-id">{{ account.account_id }}</span>
+                                        <span class="account-id">{{ account['account_id'] }}</span>
                                     </td>
                                     <td>
-                                        <span style="color: rgba(255, 255, 255, 0.7);">{{ account.account_type.title() }}</span>
+                                        <span style="color: rgba(255, 255, 255, 0.7);">{{ account['account_type'].title() }}</span>
                                     </td>
                                     <td>
-                                        {% if account.sync_status == 'synced' %}
+                                        {% if account['sync_status'] == 'synced' %}
                                         <span class="status-badge synced">Synced</span>
-                                        {% elif account.sync_status == 'failed' %}
+                                        {% elif account['sync_status'] == 'failed' %}
                                         <span class="status-badge failed" 
                                               title="Account failed to sync. Check credentials or contact support."
                                               data-bs-toggle="tooltip" 
@@ -649,8 +649,8 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if account.current_balance is not none %}
-                                            <span class="balance-amount">${{ "%.2f"|format(account.current_balance) }}</span>
+                                        {% if account['current_balance'] is not none %}
+                                            <span class="balance-amount">${{ "%.2f"|format(account['current_balance']) }}</span>
                                         {% else %}
                                             <span class="balance-not-synced">Not synced</span>
                                         {% endif %}
@@ -658,9 +658,9 @@
                                     <td>
                                         <button type="button" 
                                                 class="action-btn action-btn-danger remove-account-btn" 
-                                                data-account-id="{{ account.account_id }}"
+                                                data-account-id="{{ account['account_id'] }}"
                                                 title="Remove account"
-                                                id="remove-btn-{{ account.account_id }}">
+                                                id="remove-btn-{{ account['account_id'] }}">
                                             <span class="material-symbols-outlined me-1" style="font-size: 16px;">
                                                 delete
                                             </span>
