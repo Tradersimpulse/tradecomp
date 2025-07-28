@@ -1,263 +1,997 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trading Competition{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --primary-color: #6366F1; /* Indigo */
+            --secondary-color: #8B5CF6; /* Purple */
+            --success-color: #10B981; /* Green */
+            --danger-color: #EF4444; /* Red */
+            --warning-color: #F59E0B; /* Amber */
+            
+            /* Updated color scheme */
+            --bg-primary: #0F0F23; /* Very dark blue */
+            --bg-secondary: #1A1B36; /* Dark blue-purple */
+            --bg-tertiary: #252642; /* Medium blue-purple */
+            --bg-card: #1E1F35; /* Card background */
+            --bg-input: #252642; /* Input background */
+            
+            /* IMPROVED TEXT COLORS FOR BETTER READABILITY */
+            --text-primary: #FFFFFF;
+            --text-secondary: #E5E7EB; /* Much brighter than original #9CA3AF */
+            --text-muted: #D1D5DB; /* Much brighter than original #6B7280 */
+            
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-light: rgba(255, 255, 255, 0.05);
+            
+            --gradient-primary: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
 
-{% block title %}Leaderboard - Trading Competition{% endblock %}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block content %}
-<!-- Competition Header -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h3 class="text-gradient-primary mb-2">
-                            <span class="material-symbols-outlined me-2">leaderboard</span>
-                            Competition Leaderboard
-                        </h3>
-                        {% if start_date and end_date %}
-                        <p class="mb-0" style="color: #E5E7EB !important;">
-                            Competition Period: {{ start_date.strftime('%B %d') }} - {{ end_date.strftime('%B %d, %Y') }}
-                        </p>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 text-md-end">
-                        <div class="d-flex align-items-center justify-content-md-end">
-                            <span class="material-symbols-outlined text-primary me-2">groups</span>
-                            <span style="color: #E5E7EB !important;">{{ leaderboard|length }} Participants</span>
-                        </div>
-                    </div>
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* IMPROVED TEXT READABILITY OVERRIDES */
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Competition header text - make it white */
+        .card-header p.text-muted,
+        .competition-period {
+            color: #FFFFFF !important;
+            opacity: 0.9;
+        }
+
+        /* Card subtitle text */
+        .card-header small,
+        .card-body small,
+        small.text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Stats and metric labels */
+        .stat-label,
+        .metric-label {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Ensure all muted text in cards is readable */
+        .card .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Competition period specifically */
+        .card-header p,
+        .competition-info {
+            color: #FFFFFF !important;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(20px);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        /* Logo Section */
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 90px;
+            position: relative;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+        }
+
+        .sidebar-logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.3s ease;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-logo-icon {
+            height: 32px;
+            width: 32px;
+            color: var(--primary-color);
+            opacity: 0;
+            position: absolute;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .sidebar.collapsed .sidebar-logo-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar.collapsed .nav-section {
+            margin-bottom: 1rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary) !important; /* Improved readability */
+            padding: 0 1.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .nav-section-title {
+            display: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+            padding: 0 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1rem;
+            color: var(--text-secondary) !important;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            position: relative;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 1rem 0.75rem;
+            border-radius: 12px;
+        }
+
+        .nav-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-primary) !important;
+            transform: translateX(4px);
+        }
+
+        .sidebar.collapsed .nav-link:hover {
+            transform: none;
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .nav-link.active {
+            background: var(--gradient-primary);
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-link .material-symbols-outlined {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            color: inherit;
+            font-weight: inherit;
+        }
+
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* Toggle button */
+        .sidebar-toggle {
+            position: absolute;
+            top: 2rem;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1001;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
+            padding: 2rem;
+            background: var(--bg-primary);
+        }
+
+        .sidebar.collapsed + .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.025em;
+        }
+
+        /* Cards and Components */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.2);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            padding: 1.5rem 2rem;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s ease;
+            border: none;
+            letter-spacing: 0.025em;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            border: none;
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--gradient-danger);
+            border: none;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+            color: white;
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--gradient-primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Forms */
+        .form-control {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .form-control:focus {
+            background: var(--bg-input);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+            color: var(--text-primary);
+        }
+
+        .form-control::placeholder {
+            color: #9CA3AF !important; /* Slightly brighter placeholder */
+        }
+
+        .form-select {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .form-select:focus {
+            background: var(--bg-input);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+            color: var(--text-primary);
+        }
+
+        .form-label {
+            color: var(--text-secondary) !important; /* Improved readability */
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        /* Alert text improvements */
+        .alert .text-muted {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        /* Table */
+        .table {
+            color: var(--text-primary);
+            margin-bottom: 0;
+        }
+
+        .table-dark {
+            --bs-table-bg: var(--bg-card);
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+        }
+
+        .table-dark th {
+            border-color: var(--border-color);
+            font-weight: 600;
+            color: var(--text-secondary) !important; /* Improved readability */
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1rem;
+        }
+
+        .table-dark td {
+            border-color: var(--border-color);
+            padding: 1rem;
+            font-weight: 500;
+        }
+
+        /* User section in sidebar */
+        .sidebar-user {
+            padding: 1.5rem 1rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-color);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 0.875rem;
+            line-height: 1.2;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-muted) !important; /* Improved readability */
+            line-height: 1;
+        }
+
+        .logout-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .logout-btn:hover {
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 2rem 1rem;
+                padding-top: 5rem;
+            }
+
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(4px);
+            }
+
+            .mobile-overlay.show {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .mobile-toggle {
+                position: fixed;
+                top: 1.5rem;
+                left: 1.5rem;
+                z-index: 1002;
+                background: var(--gradient-primary);
+                border: none;
+                color: white;
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--shadow-lg);
+                transition: all 0.2s ease;
+            }
+
+            .mobile-toggle:hover {
+                transform: scale(1.05);
+            }
+
+            .top-bar {
+                padding: 1rem 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Status indicators */
+        .status-active {
+            color: var(--success-color);
+        }
+
+        .status-inactive {
+            color: var(--text-muted) !important; /* Improved readability */
+        }
+
+        /* Percentage colors */
+        .positive {
+            color: var(--success-color);
+        }
+
+        .negative {
+            color: var(--danger-color);
+        }
+
+        .neutral {
+            color: var(--text-secondary);
+        }
+
+        /* Custom gradient backgrounds */
+        .bg-gradient-primary {
+            background: var(--gradient-primary) !important;
+        }
+
+        .bg-gradient-success {
+            background: var(--gradient-success) !important;
+        }
+
+        .bg-gradient-danger {
+            background: var(--gradient-danger) !important;
+        }
+
+        /* Text gradients */
+        .text-gradient-primary {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Additional utility classes */
+        .glass-card {
+            background: rgba(30, 31, 53, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Additional readability improvements */
+        .badge {
+            font-weight: 600; /* Make badge text bolder */
+        }
+
+        /* Quick stats sidebar labels */
+        .sidebar .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Competition info text */
+        .card-body .list-unstyled small {
+            color: var(--text-secondary) !important;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- Mobile overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <!-- Mobile toggle button -->
+    <button class="mobile-toggle d-md-none" id="mobileToggle">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Toggle button -->
+        <button class="sidebar-toggle d-none d-md-flex" id="sidebarToggle">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+
+        <!-- Header -->
+        <div class="sidebar-header">
+            <div class="sidebar-logo">TRADING COMP</div>
+            <span class="material-symbols-outlined sidebar-logo-icon">trending_up</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <!-- Main Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Competition</div>
+                <div class="nav-item">
+                    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('leaderboard') }}" class="nav-link {% if request.endpoint == 'leaderboard' %}active{% endif %}">
+                        <span class="material-symbols-outlined">leaderboard</span>
+                        <span class="nav-text">Leaderboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('accounts') }}" class="nav-link {% if request.endpoint == 'accounts' %}active{% endif %}">
+                        <span class="material-symbols-outlined">account_balance</span>
+                        <span class="nav-text">My Account</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('rules') }}" class="nav-link {% if request.endpoint == 'rules' %}active{% endif %}">
+                        <span class="material-symbols-outlined">gavel</span>
+                        <span class="nav-text">Rules</span>
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-{% if leaderboard %}
-<!-- Top 3 Podium -->
-{% set top_three = leaderboard[:3] %}
-{% if top_three|length >= 3 %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="text-center mb-4">🏆 Top Performers 🏆</h5>
-                <div class="row justify-content-center">
-                    <!-- 2nd Place -->
-                    <div class="col-md-4 text-center mb-3">
-                        <div class="podium-card" style="background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%); padding: 1.5rem; border-radius: 16px;">
-                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🥈</div>
-                            <h5 class="text-white mb-1">{{ top_three[1].username }}</h5>
-                            <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[1].percentage_change) }}%</h4>
-                            <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[1].profit) }} profit</small>
-                        </div>
-                    </div>
-                    
-                    <!-- 1st Place -->
-                    <div class="col-md-4 text-center mb-3">
-                        <div class="podium-card" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 2rem; border-radius: 16px; transform: scale(1.1);">
-                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👑</div>
-                            <h4 class="text-white mb-1">{{ top_three[0].username }}</h4>
-                            <h3 class="text-white mb-0">+{{ "%.2f"|format(top_three[0].percentage_change) }}%</h3>
-                            <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[0].profit) }} profit</small>
-                        </div>
-                    </div>
-                    
-                    <!-- 3rd Place -->
-                    <div class="col-md-4 text-center mb-3">
-                        <div class="podium-card" style="background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%); padding: 1.5rem; border-radius: 16px;">
-                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🥉</div>
-                            <h5 class="text-white mb-1">{{ top_three[2].username }}</h5>
-                            <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[2].percentage_change) }}%</h4>
-                            <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[2].profit) }} profit</small>
-                        </div>
-                    </div>
+            {% if current_user.is_admin %}
+            <!-- Admin Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Admin</div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin') }}" class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span class="nav-text">Admin Panel</span>
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-{% endif %}
+            {% endif %}
+        </nav>
 
-<!-- Full Leaderboard Table -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Full Rankings</h5>
-                <button class="btn btn-outline-primary btn-sm" onclick="refreshLeaderboard()">
-                    <span class="material-symbols-outlined me-1">refresh</span>
-                    Refresh
-                </button>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-dark table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th width="10%">Rank</th>
-                                <th width="25%">Trader</th>
-                                <th width="15%">Starting Balance</th>
-                                <th width="15%">Current Balance</th>
-                                <th width="15%">Profit/Loss</th>
-                                <th width="15%">Return %</th>
-                                <th width="5%">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for trader in leaderboard %}
-                            <tr class="{% if trader.rank <= 3 %}table-warning{% endif %} {% if current_user.is_authenticated and trader.username == current_user.username %}table-info{% endif %}">
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        {% if trader.rank == 1 %}
-                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">👑</span>
-                                        {% elif trader.rank == 2 %}
-                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">🥈</span>
-                                        {% elif trader.rank == 3 %}
-                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">🥉</span>
-                                        {% endif %}
-                                        <strong>#{{ trader.rank }}</strong>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center me-2">
-                                            <span class="text-white fw-bold">{{ trader.username[0].upper() }}</span>
-                                        </div>
-                                        <div>
-                                            <strong>{{ trader.username }}</strong>
-                                            {% if current_user.is_authenticated and trader.username == current_user.username %}
-                                                <span class="badge bg-info ms-1">You</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>${{ "%.2f"|format(trader.starting_balance) }}</td>
-                                <td>${{ "%.2f"|format(trader.current_balance) }}</td>
-                                <td class="{% if trader.profit >= 0 %}positive{% else %}negative{% endif %}">
-                                    {% if trader.profit >= 0 %}+{% endif %} ${{ "%.2f"|format(trader.profit) }}
-                                </td>
-                                <td class="{% if trader.percentage_change >= 0 %}positive{% else %}negative{% endif %}">
-                                    <strong>
-                                        {% if trader.percentage_change >= 0 %}+{% endif %}{{ "%.2f"|format(trader.percentage_change) }}%
-                                    </strong>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ 'success' if trader.is_active else 'secondary' }}">
-                                        {% if trader.is_active %}
-                                            <span class="material-symbols-outlined" style="font-size: 12px;">check_circle</span>
-                                        {% else %}
-                                            <span class="material-symbols-outlined" style="font-size: 12px;">pause_circle</span>
-                                        {% endif %}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <!-- User section -->
+        <div class="sidebar-user">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    {{ current_user.username[0].upper() }}
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Statistics -->
-<div class="row mt-4">
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">groups</span>
-                <h5 style="color: #E5E7EB !important;" class="mb-1">Total Participants</h5>
-                <h3 class="text-gradient-primary mb-0">{{ leaderboard|length }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">trending_up</span>
-                <h5 style="color: #E5E7EB !important;" class="mb-1">Best Performance</h5>
-                <h3 class="{% if leaderboard[0].percentage_change >= 0 %}positive{% else %}negative{% endif %} mb-0">
-                    {% if leaderboard[0].percentage_change >= 0 %}+{% endif %}{{ "%.2f"|format(leaderboard[0].percentage_change) }}%
-                </h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                {% set total_profit = leaderboard | sum(attribute='profit') %}
-                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">attach_money</span>
-                <h5 style="color: #E5E7EB !important;" class="mb-1">Total Profits</h5>
-                <h3 class="{% if total_profit >= 0 %}positive{% else %}negative{% endif %} mb-0">
-                    {% if total_profit >= 0 %}+{% endif %} ${{ "%.2f"|format(total_profit) }}
-                </h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                {% set profitable_traders = leaderboard | selectattr('profit', '>', 0) | list | length %}
-                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">pie_chart</span>
-                <h5 style="color: #E5E7EB !important;" class="mb-1">Profitable Traders</h5>
-                <h3 class="positive mb-0">{{ profitable_traders }}/{{ leaderboard|length }}</h3>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% else %}
-<!-- Empty State -->
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card text-center">
-            <div class="card-body py-5">
-                <span class="material-symbols-outlined mb-3" style="font-size: 64px; color: #E5E7EB;">leaderboard</span>
-                <h3 style="color: #E5E7EB !important;" class="mb-3">No Participants Yet</h3>
-                <p style="color: #D1D5DB !important;" class="mb-4">Be the first to join the trading competition!</p>
-                <a href="{{ url_for('accounts') }}" class="btn btn-primary">
-                    <span class="material-symbols-outlined me-2">add</span>
-                    Join Competition
+                <div class="user-info">
+                    <div class="user-name">{{ current_user.username }}</div>
+                    <div class="user-role">Trader</div>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn" title="Logout">
+                    <span class="material-symbols-outlined">logout</span>
                 </a>
             </div>
         </div>
-    </div>
-</div>
-{% endif %}
-{% endblock %}
+    </aside>
+    {% endif %}
 
-{% block scripts %}
-<script>
-function refreshLeaderboard() {
-    location.reload();
-}
+    <!-- Main content -->
+    <main class="main-content" id="mainContent">
+        {% if current_user.is_authenticated %}
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1 class="page-title">
+                {% block page_title %}
+                    {% if request.endpoint == 'dashboard' %}Dashboard
+                    {% elif request.endpoint == 'leaderboard' %}Leaderboard
+                    {% elif request.endpoint == 'accounts' %}My Account
+                    {% elif request.endpoint == 'rules' %}Rules
+                    {% elif request.endpoint == 'admin' %}Admin Panel
+                    {% else %}Trading Competition{% endif %}
+                {% endblock %}
+            </h1>
+        </div>
+        {% endif %}
 
-// Auto-refresh every 5 minutes
-setInterval(refreshLeaderboard, 300000);
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center">
+                        <span class="material-symbols-outlined me-2">
+                            {% if category == 'success' %}check_circle
+                            {% elif category == 'error' or category == 'danger' %}error
+                            {% elif category == 'warning' %}warning
+                            {% else %}info{% endif %}
+                        </span>
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-// Add custom styles for avatar
-document.addEventListener('DOMContentLoaded', function() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .avatar-sm {
-            width: 32px;
-            height: 32px;
-            font-size: 0.875rem;
+        <!-- Page content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mobileToggle = document.getElementById('mobileToggle');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            const toggleIcon = sidebarToggle?.querySelector('.material-symbols-outlined');
+
+            // Desktop sidebar toggle
+            sidebarToggle?.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                if (sidebar.classList.contains('collapsed')) {
+                    toggleIcon.textContent = 'chevron_right';
+                } else {
+                    toggleIcon.textContent = 'chevron_left';
+                }
+            });
+
+            // Mobile sidebar toggle
+            mobileToggle?.addEventListener('click', function() {
+                sidebar.classList.add('mobile-open');
+                mobileOverlay.classList.add('show');
+            });
+
+            // Close mobile sidebar
+            mobileOverlay?.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('show');
+            });
+
+            // Add smooth hover effects to cards
+            const cards = document.querySelectorAll('.card, .metric-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+
+        // Global notification function
+        function showToast(message, type = 'info') {
+            const alertClass = type === 'error' ? 'danger' : type;
+            const icon = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
+            
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${alertClass} alert-dismissible fade show position-fixed`;
+            alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px; border-radius: 12px; backdrop-filter: blur(20px);';
+            alert.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <span class="material-symbols-outlined me-2">${icon}</span>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alert);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
         }
-        .podium-card {
-            transition: transform 0.2s ease;
+
+        // Add loading states to buttons
+        function addLoadingState(button, text = 'Loading...') {
+            button.disabled = true;
+            const originalText = button.innerHTML;
+            button.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                ${text}
+            `;
+            
+            return () => {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            };
         }
-        .podium-card:hover {
-            transform: scale(1.05) !important;
-        }
-        .table-warning {
-            background-color: rgba(255, 193, 7, 0.1) !important;
-        }
-        .table-info {
-            background-color: rgba(13, 202, 240, 0.1) !important;
-        }
-    `;
-    document.head.appendChild(style);
-});
-</script>
-{% endblock %}
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
