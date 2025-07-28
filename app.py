@@ -623,13 +623,14 @@ def handle_tradelocker_accounts_addition():
         return redirect(url_for('accounts'))
 
 def handle_mt5_connection():
-    """Handle MT5 account addition"""
+    """Handle MT5 account addition - No initial balance, pending status"""
     try:
         account_number = request.form.get('account_number')
+        password = request.form.get('password')
         server = request.form.get('server')
         
-        if not all([account_number, server]):
-            flash('Account number and server are required', 'error')
+        if not all([account_number, password, server]):
+            flash('Account number, password, and server are required', 'error')
             return redirect(url_for('accounts'))
         
         # Validate server
@@ -662,37 +663,37 @@ def handle_mt5_connection():
         account_count = cursor.fetchone()[0]
         is_active = 1 if account_count == 0 else 0
         
-        # Insert new MT5 account
+        # Insert new MT5 account - NO INITIAL BALANCE, PENDING STATUS
         cursor.execute("""
             INSERT INTO trading_accounts 
-            (user_id, account_type, account_number, mt5_server, starting_balance, current_balance, 
-             is_active, created_at, last_updated, account_id) 
+            (user_id, account_type, account_number, mt5_password, mt5_server, 
+             is_active, sync_status, created_at, last_updated, account_id) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             current_user.id,
             'mt5',
             account_number,
+            password,
             server,
-            100.0,  # Default starting balance
-            100.0,  # Default current balance
             is_active,
+            'pending',
             datetime.now(),
             datetime.now(),
-            account_number  # Use account number as account_id for MT5
+            account_number
         ))
         
         conn.commit()
         cursor.close()
         conn.close()
         
-        flash('MT5 account added successfully to the competition!', 'success')
+        flash('MT5 account added successfully! Waiting for balance sync...', 'success')
         return redirect(url_for('dashboard'))
         
     except Exception as e:
         logger.error(f"MT5 connection error: {str(e)}")
         flash(f"Error adding MT5 account: {str(e)}", 'error')
         return redirect(url_for('accounts'))
-
+        
 def handle_set_default_account():
     """Set a specific account as the default/active account"""
     try:
