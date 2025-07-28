@@ -649,7 +649,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if account.current_balance %}
+                                        {% if account.current_balance is not none %}
                                             <span class="balance-amount">${{ "%.2f"|format(account.current_balance) }}</span>
                                         {% else %}
                                             <span class="balance-not-synced">Not synced</span>
