@@ -162,6 +162,35 @@
         margin-right: 0.5rem;
     }
 
+    /* Sync status badges */
+    .status-badge.pending {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        animation: pulse-pending 2s infinite;
+    }
+
+    .status-badge.pending::before {
+        content: '⏳';
+        margin-right: 0.5rem;
+    }
+
+    .status-badge.synced {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.synced::before {
+        content: '✅';
+        margin-right: 0.5rem;
+    }
+
+    @keyframes pulse-pending {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
     /* Action buttons */
     .action-btn {
         padding: 0.5rem 1rem;
