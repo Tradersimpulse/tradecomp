@@ -445,6 +445,7 @@ def accounts():
                         account_id, 
                         account_type, 
                         account_name,
+                        current_balance,
                         sync_status,
                         is_active,
                         created_at
