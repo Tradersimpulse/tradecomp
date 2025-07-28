@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import requests
 import logging
 from werkzeug.security import generate_password_hash, check_password_hash
+from tradelocker import TradeLocker
 
 # Load environment variables
 load_dotenv()
