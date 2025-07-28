@@ -612,6 +612,11 @@
                                     <td>
                                         {% if account.sync_status == 'synced' %}
                                         <span class="status-badge synced">Synced</span>
+                                        {% elif account.sync_status == 'failed' %}
+                                        <span class="status-badge failed" 
+                                              title="Account failed to sync. Check credentials or contact support."
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-placement="top">Failed</span>
                                         {% else %}
                                         <span class="status-badge pending" 
                                               title="Syncing account data with your broker. Status will update to 'Synced' once complete (usually within 15 minutes)."
