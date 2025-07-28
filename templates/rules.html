@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Rules - Trading Competition{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-4">
+                <h2 class="text-gradient-primary mb-2">
+                    <span class="material-symbols-outlined me-2" style="font-size: 2rem;">gavel</span>
+                    Trading Competition Rules
+                </h2>
+                <p style="color: #E5E7EB !important;" class="mb-0">
+                    Follow these steps to enter and compete for prizes
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How to Enter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-gradient-primary mb-0">
+                    <span class="material-symbols-outlined me-2">login</span>
+                    HOW TO ENTER TRADING COMPETITION
+                </h3>
+            </div>
+            <div class="card-body">
+                <!-- Step 1 -->
+                <div class="step-card mb-4">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">1</span>
+                        </div>
+                        <div class="step-content">
+                            <h5 class="text-white mb-3">Sign up for one of the brokers below</h5>
+                            <div class="alert alert-warning mb-3">
+                                <span class="material-symbols-outlined me-2">warning</span>
+                                <strong>IMPORTANT:</strong> You MUST register an account with one of the links below to ensure all traders have the same market environments. If you don't follow this step you will not be entered.
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="broker-card">
+                                        <h6 class="text-primary mb-2">
+                                            <span class="material-symbols-outlined me-1" style="font-size: 18px;">public</span>
+                                            Non US Clients
+                                        </h6>
+                                        <a href="https://plexytrade.com/?t=TBZp1B&term=register" target="_blank" class="btn btn-primary w-100">
+                                            <span class="material-symbols-outlined me-2">open_in_new</span>
+                                            Register at PlexyTrade
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="broker-card">
+                                        <h6 class="text-primary mb-2">
+                                            <span class="material-symbols-outlined me-1" style="font-size: 18px;">flag</span>
+                                            US Clients
+                                        </h6>
+                                        <a href="https://tradesmart.com/?t=l9Uibx&term=bonus" target="_blank" class="btn btn-primary w-100">
+                                            <span class="material-symbols-outlined me-2">open_in_new</span>
+                                            Register at TradeSmart
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-card mb-4">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">2</span>
+                        </div>
+                        <div class="step-content">
+                            <h5 class="text-white mb-3">Choose to create Live account</h5>
+                            <div class="alert alert-info">
+                                <span class="material-symbols-outlined me-2">info</span>
+                                For Country of Residence, choose <strong>OTHER</strong> if you reside in the U.S.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step-card mb-4">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">3</span>
+                        </div>
+                        <div class="step-content">
+                            <h5 class="text-white mb-3">Choose either MT5 or Tradelocker</h5>
+                            <p style="color: #E5E7EB !important;">
+                                Select your preferred trading platform when setting up your account.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step-card mb-4">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">4</span>
+                        </div>
+                        <div class="step-content">
+                            <h5 class="text-white mb-3">Fund the account with a MINIMUM of $100</h5>
+                            <div class="funding-highlight">
+                                <span class="material-symbols-outlined me-2 text-success" style="font-size: 24px;">attach_money</span>
+                                <span class="text-success fs-4 fw-bold">$100 MINIMUM DEPOSIT REQUIRED</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="step-card mb-4">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">5</span>
+                        </div>
+                        <div class="step-content">
+                            <h5 class="text-white mb-3">Enter your account info on the account page of this website</h5>
+                            <a href="{{ url_for('accounts') }}" class="btn btn-success btn-lg">
+                                <span class="material-symbols-outlined me-2">account_balance</span>
+                                Go to Account Page
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="step-card">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">6</span>
+                        </div>
+                        <div class="step-content">
+                            <h5 class="text-white mb-3">Start trading!</h5>
+                            <div class="winner-highlight mb-3">
+                                <span class="material-symbols-outlined me-2 text-warning" style="font-size: 28px;">emoji_events</span>
+                                <span class="text-warning fs-4 fw-bold">The trader with the HIGHEST % GAIN will win [DYNAMIC VALUE]</span>
+                            </div>
+                            <p style="color: #E5E7EB !important;">
+                                Competition runs from the start date to the end date. Your percentage gain will be calculated based on your starting balance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Rules -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <span class="material-symbols-outlined me-2">refresh</span>
+                    Re-entering Competition
+                </h5>
+            </div>
+            <div class="card-body">
+                <p style="color: #E5E7EB !important;" class="mb-3">
+                    You can re-enter with a new account by updating your account info on the accounts page.
+                </p>
+                <a href="{{ url_for('accounts') }}" class="btn btn-outline-primary">
+                    <span class="material-symbols-outlined me-2">settings</span>
+                    Update Account Info
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <span class="material-symbols-outlined me-2">group_add</span>
+                    Multiple Accounts
+                </h5>
+            </div>
+            <div class="card-body">
+                <p style="color: #E5E7EB !important;" class="mb-3">
+                    You can enter with multiple accounts. To do this, you will need to register with a different email address.
+                </p>
+                <div class="alert alert-info">
+                    <span class="material-symbols-outlined me-2">info</span>
+                    Each account must be registered separately with unique email addresses.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-4">
+                <h4 class="text-gradient-primary mb-3">Ready to compete?</h4>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{{ url_for('accounts') }}" class="btn btn-primary btn-lg">
+                        <span class="material-symbols-outlined me-2">account_balance</span>
+                        Set Up Account
+                    </a>
+                    <a href="{{ url_for('leaderboard') }}" class="btn btn-outline-secondary btn-lg">
+                        <span class="material-symbols-outlined me-2">leaderboard</span>
+                        View Leaderboard
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-info btn-lg">
+                        <span class="material-symbols-outlined me-2">dashboard</span>
+                        Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add smooth scroll to anchor links
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to step cards
+    const stepCards = document.querySelectorAll('.step-card');
+    stepCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(10px)';
+            this.style.background = 'rgba(99, 102, 241, 0.05)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+            this.style.background = 'transparent';
+        });
+    });
+
+    // Add click tracking for external links
+    const externalLinks = document.querySelectorAll('a[target="_blank"]');
+    externalLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            console.log('External link clicked:', this.href);
+        });
+    });
+});
+</script>
+
+<style>
+.step-card {
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    background: transparent;
+}
+
+.step-card:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+}
+
+.step-number {
+    margin-right: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.step-number .badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.broker-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.broker-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-2px);
+}
+
+.funding-highlight {
+    display: flex;
+    align-items: center;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+}
+
+.winner-highlight {
+    display: flex;
+    align-items: center;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+}
+
+.alert {
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.alert-info {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366F1;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.btn-lg {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.text-gradient-primary {
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .step-card {
+        padding: 1.5rem;
+    }
+    
+    .step-number {
+        margin-right: 1rem;
+    }
+    
+    .d-flex.gap-3 {
+        flex-direction: column;
+        gap: 1rem !important;
+    }
+    
+    .broker-card {
+        padding: 1rem;
+    }
+    
+    .funding-highlight,
+    .winner-highlight {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .funding-highlight span,
+    .winner-highlight span {
+        margin: 0;
+    }
+}
+</style>
+{% endblock %}
