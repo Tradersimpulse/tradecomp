@@ -36,9 +36,10 @@
             --bg-card: #1E1F35; /* Card background */
             --bg-input: #252642; /* Input background */
             
+            /* IMPROVED TEXT COLORS FOR BETTER READABILITY */
             --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
-            --text-muted: #6B7280;
+            --text-secondary: #E5E7EB; /* Much brighter than original #9CA3AF */
+            --text-muted: #D1D5DB; /* Much brighter than original #6B7280 */
             
             --border-color: rgba(255, 255, 255, 0.08);
             --border-light: rgba(255, 255, 255, 0.05);
@@ -67,6 +68,46 @@
             overflow-x: hidden;
             font-size: 14px;
             line-height: 1.6;
+        }
+
+        /* IMPROVED TEXT READABILITY OVERRIDES */
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Competition header text - make it white */
+        .card-header p.text-muted,
+        .competition-period {
+            color: #FFFFFF !important;
+            opacity: 0.9;
+        }
+
+        /* Card subtitle text */
+        .card-header small,
+        .card-body small,
+        small.text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Stats and metric labels */
+        .stat-label,
+        .metric-label {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Ensure all muted text in cards is readable */
+        .card .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Competition period specifically */
+        .card-header p,
+        .competition-info {
+            color: #FFFFFF !important;
         }
 
         /* Sidebar Styles */
@@ -153,7 +194,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: var(--text-muted);
+            color: var(--text-secondary) !important; /* Improved readability */
             padding: 0 1.5rem;
             margin-bottom: 0.75rem;
             transition: all 0.3s ease;
@@ -393,7 +434,7 @@
         }
 
         .form-control::placeholder {
-            color: var(--text-muted);
+            color: #9CA3AF !important; /* Slightly brighter placeholder */
         }
 
         .form-select {
@@ -414,7 +455,7 @@
         }
 
         .form-label {
-            color: var(--text-secondary);
+            color: var(--text-secondary) !important; /* Improved readability */
             font-weight: 600;
             font-size: 0.875rem;
             margin-bottom: 0.5rem;
@@ -453,6 +494,11 @@
             border: 1px solid rgba(99, 102, 241, 0.2);
         }
 
+        /* Alert text improvements */
+        .alert .text-muted {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
         /* Table */
         .table {
             color: var(--text-primary);
@@ -467,7 +513,7 @@
         .table-dark th {
             border-color: var(--border-color);
             font-weight: 600;
-            color: var(--text-secondary);
+            color: var(--text-secondary) !important; /* Improved readability */
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -533,7 +579,7 @@
 
         .user-role {
             font-size: 0.75rem;
-            color: var(--text-muted);
+            color: var(--text-muted) !important; /* Improved readability */
             line-height: 1;
         }
 
@@ -623,7 +669,7 @@
         }
 
         .status-inactive {
-            color: var(--text-muted);
+            color: var(--text-muted) !important; /* Improved readability */
         }
 
         /* Percentage colors */
@@ -711,6 +757,21 @@
             font-size: 0.875rem;
             color: var(--text-secondary);
             font-weight: 500;
+        }
+
+        /* Additional readability improvements */
+        .badge {
+            font-weight: 600; /* Make badge text bolder */
+        }
+
+        /* Quick stats sidebar labels */
+        .sidebar .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Competition info text */
+        .card-body .list-unstyled small {
+            color: var(--text-secondary) !important;
         }
     </style>
     {% block head %}{% endblock %}
