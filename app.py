@@ -398,7 +398,7 @@ def dashboard():
                              user_accounts=[])
 
 @app.route('/accounts', methods=['GET', 'POST'])
-@login_required
+@login_required  
 def accounts():
     if request.method == 'GET':
         # Clear session data if requested
@@ -408,7 +408,31 @@ def accounts():
             session.pop('tradelocker_env', None)
             session.pop('tradelocker_login_info', None)
         
-        return render_template('accounts.html')
+        # Get user's full account data for display
+        user_accounts = []
+        try:
+            conn = get_connection()
+            if conn:
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT 
+                        account_id, 
+                        account_type, 
+                        account_name,
+                        sync_status,
+                        is_active,
+                        created_at
+                    FROM trading_accounts 
+                    WHERE user_id = %s 
+                    ORDER BY created_at DESC
+                """, (current_user.id,))
+                user_accounts = cursor.fetchall()
+                cursor.close()
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error getting user accounts: {e}")
+        
+        return render_template('accounts.html', user_accounts=user_accounts)
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -424,6 +448,7 @@ def accounts():
         else:
             flash('Unknown action', 'error')
             return redirect(url_for('accounts'))
+            
 
 def handle_tradelocker_connection():
     """Handle TradeLocker API connection - fetch accounts for selection"""
