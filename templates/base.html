@@ -537,6 +537,27 @@
             border-color: var(--border-color);
             padding: 1rem;
             font-weight: 500;
+            color: var(--text-primary) !important; /* Force white text */
+        }
+
+        /* Ensure all table text is white/visible */
+        .table td,
+        .table th,
+        .table tbody tr td,
+        .table thead tr th {
+            color: var(--text-primary) !important;
+        }
+
+        /* Force white text on all table elements */
+        .table * {
+            color: var(--text-primary) !important;
+        }
+
+        /* Specific overrides for any remaining black text */
+        .table .text-dark,
+        .table [style*="color: black"],
+        .table [style*="color: #000"] {
+            color: var(--text-primary) !important;
         }
 
         /* User section in sidebar */
@@ -880,6 +901,36 @@
         [color="#7B68EE"] {
             color: #10B981 !important;
         }
+
+        /* Force white text on dark backgrounds */
+        .table,
+        .table-dark,
+        .table-warning,
+        .table-info {
+            color: var(--text-primary) !important;
+        }
+
+        /* Override any Bootstrap text utilities that might be black */
+        .text-dark,
+        .text-black,
+        [style*="color: black"],
+        [style*="color: #000000"],
+        [style*="color: #000"] {
+            color: var(--text-primary) !important;
+        }
+
+        /* Ensure all text inside cards and tables is visible */
+        .card *,
+        .table *,
+        .modern-card * {
+            color: inherit !important;
+        }
+
+        /* Specific fix for table cell text */
+        .table tbody td,
+        .table thead th {
+            color: var(--text-primary) !important;
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -1042,7 +1093,7 @@
 
             // ========== DYNAMIC COLOR CONVERSION TO GREEN ==========
             
-            // Function to convert purple/blue colors to green
+            // Function to convert purple/blue colors to green AND black text to white
             function convertColorsToGreen() {
                 // Colors to replace (purple/blue variants)
                 const colorsToReplace = [
@@ -1052,9 +1103,15 @@
                     'rgb(99, 102, 241)', 'rgb(139, 92, 246)',
                     'blue', 'purple', 'mediumslateblue', 'slateblue'
                 ];
+
+                // Black colors to replace with white
+                const blackColorsToReplace = [
+                    '#000000', '#000', 'black', 'rgb(0, 0, 0)'
+                ];
                 
                 // Green replacement color
                 const greenColor = '#10B981';
+                const whiteColor = '#FFFFFF';
                 
                 // Find all elements with text content
                 const allElements = document.querySelectorAll('*');
@@ -1069,6 +1126,14 @@
                         if (color.toLowerCase().includes(oldColor.toLowerCase()) || 
                             element.style.color?.toLowerCase().includes(oldColor.toLowerCase())) {
                             element.style.color = greenColor + ' !important';
+                        }
+                    });
+
+                    // Replace if it's black text (especially in tables)
+                    blackColorsToReplace.forEach(blackColor => {
+                        if (color.toLowerCase().includes(blackColor.toLowerCase()) || 
+                            element.style.color?.toLowerCase().includes(blackColor.toLowerCase())) {
+                            element.style.color = whiteColor + ' !important';
                         }
                     });
                     
@@ -1091,6 +1156,14 @@
                 headings.forEach(heading => {
                     if (!heading.style.color || heading.style.color.includes('blue') || heading.style.color.includes('purple')) {
                         heading.style.color = greenColor + ' !important';
+                    }
+                });
+
+                // Force white text in tables
+                const tableElements = document.querySelectorAll('.table td, .table th, .table tbody tr td, .table thead tr th');
+                tableElements.forEach(element => {
+                    if (element.style.color === 'black' || element.style.color === '#000' || element.style.color === '#000000') {
+                        element.style.color = whiteColor + ' !important';
                     }
                 });
                 
