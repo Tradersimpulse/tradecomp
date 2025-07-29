@@ -298,7 +298,7 @@
             margin-left: var(--sidebar-width);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 100vh;
-            padding: 2rem;
+            padding: 1rem 2rem 2rem 2rem; /* Reduced top padding since no top bar */
             background: var(--bg-primary);
         }
 
@@ -504,11 +504,23 @@
         .table {
             color: var(--text-primary);
             margin-bottom: 0;
+            --bs-table-bg: transparent !important;
+            --bs-table-striped-bg: transparent !important;
+            --bs-table-hover-bg: rgba(16, 185, 129, 0.05) !important;
         }
 
         .table-dark {
-            --bs-table-bg: var(--bg-card);
-            --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+            --bs-table-bg: transparent !important;
+            --bs-table-striped-bg: transparent !important;
+            --bs-table-hover-bg: rgba(16, 185, 129, 0.05) !important;
+        }
+
+        .table-warning {
+            --bs-table-bg: transparent !important;
+        }
+
+        .table-info {
+            --bs-table-bg: rgba(16, 185, 129, 0.08) !important;
         }
 
         .table-dark th {
@@ -609,8 +621,8 @@
 
             .main-content {
                 margin-left: 0;
-                padding: 2rem 1rem;
-                padding-top: 5rem;
+                padding: 1rem;
+                padding-top: 4rem; /* Account for mobile toggle button */
             }
 
             .mobile-overlay {
@@ -652,11 +664,6 @@
 
             .mobile-toggle:hover {
                 transform: scale(1.05);
-            }
-
-            .top-bar {
-                padding: 1rem 1.5rem;
-                margin-bottom: 1.5rem;
             }
 
             .page-title {
