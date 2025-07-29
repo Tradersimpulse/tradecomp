@@ -23,13 +23,16 @@
         :root {
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
-            --primary-color: #6366F1; /* Indigo */
-            --secondary-color: #8B5CF6; /* Purple */
-            --success-color: #10B981; /* Green */
+            
+            /* UPDATED GREEN COLOR SCHEME */
+            --primary-color: #10B981; /* Emerald Green */
+            --secondary-color: #059669; /* Darker Emerald */
+            --accent-color: #34D399; /* Light Emerald */
+            --success-color: #10B981; /* Emerald Green */
             --danger-color: #EF4444; /* Red */
             --warning-color: #F59E0B; /* Amber */
             
-            /* Updated color scheme */
+            /* Keep the dark backgrounds */
             --bg-primary: #0F0F23; /* Very dark blue */
             --bg-secondary: #1A1B36; /* Dark blue-purple */
             --bg-tertiary: #252642; /* Medium blue-purple */
@@ -44,7 +47,9 @@
             --border-color: rgba(255, 255, 255, 0.08);
             --border-light: rgba(255, 255, 255, 0.05);
             
-            --gradient-primary: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            /* UPDATED GREEN GRADIENTS */
+            --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --gradient-accent: linear-gradient(135deg, #34D399 0%, #10B981 100%);
             --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
             --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
             --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
@@ -229,21 +234,22 @@
             border-radius: 12px;
         }
 
+        /* UPDATED GREEN HOVER EFFECTS */
         .nav-link:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(16, 185, 129, 0.1);
             color: var(--text-primary) !important;
             transform: translateX(4px);
         }
 
         .sidebar.collapsed .nav-link:hover {
             transform: none;
-            background: rgba(99, 102, 241, 0.15);
+            background: rgba(16, 185, 129, 0.15);
         }
 
         .nav-link.active {
             background: var(--gradient-primary);
             color: white !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .nav-link .material-symbols-outlined {
@@ -337,8 +343,9 @@
             transition: all 0.2s ease;
         }
 
+        /* UPDATED GREEN CARD HOVER */
         .card:hover {
-            border-color: rgba(99, 102, 241, 0.2);
+            border-color: rgba(16, 185, 129, 0.2);
             box-shadow: var(--shadow-md);
         }
 
@@ -372,9 +379,10 @@
             box-shadow: var(--shadow-sm);
         }
 
+        /* UPDATED GREEN BUTTON HOVER */
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
             color: white;
         }
 
@@ -408,11 +416,12 @@
             background: transparent;
         }
 
+        /* UPDATED GREEN OUTLINE BUTTON HOVER */
         .btn-outline-primary:hover {
             background: var(--gradient-primary);
             color: white;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
 
         /* Forms */
@@ -426,10 +435,11 @@
             font-size: 0.875rem;
         }
 
+        /* UPDATED GREEN FORM FOCUS */
         .form-control:focus {
             background: var(--bg-input);
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
             color: var(--text-primary);
         }
 
@@ -447,10 +457,11 @@
             font-size: 0.875rem;
         }
 
+        /* UPDATED GREEN SELECT FOCUS */
         .form-select:focus {
             background: var(--bg-input);
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
             color: var(--text-primary);
         }
 
@@ -488,10 +499,11 @@
             border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
+        /* UPDATED GREEN ALERT INFO */
         .alert-info {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(16, 185, 129, 0.1);
             color: var(--primary-color);
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         /* Alert text improvements */
@@ -721,7 +733,7 @@
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
+            background: rgba(16, 185, 129, 0.6);
         }
 
         /* Additional utility classes */
@@ -740,8 +752,9 @@
             transition: all 0.2s ease;
         }
 
+        /* UPDATED GREEN METRIC CARD HOVER */
         .metric-card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
+            border-color: rgba(16, 185, 129, 0.3);
             transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
         }
