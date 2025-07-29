@@ -32,12 +32,12 @@
             --danger-color: #EF4444; /* Red */
             --warning-color: #F59E0B; /* Amber */
             
-            /* Keep the dark backgrounds */
-            --bg-primary: #0F0F23; /* Very dark blue */
-            --bg-secondary: #1A1B36; /* Dark blue-purple */
-            --bg-tertiary: #252642; /* Medium blue-purple */
-            --bg-card: #1E1F35; /* Card background */
-            --bg-input: #252642; /* Input background */
+            /* MUCH DARKER BACKGROUNDS */
+            --bg-primary: #0a0a0a; /* Much darker black */
+            --bg-secondary: #111111; /* Very dark */
+            --bg-tertiary: #1a1a1a; /* Dark grey */
+            --bg-card: #141414; /* Dark card background */
+            --bg-input: #1a1a1a; /* Input background */
             
             /* IMPROVED TEXT COLORS FOR BETTER READABILITY */
             --text-primary: #FFFFFF;
@@ -786,6 +786,109 @@
         .card-body .list-unstyled small {
             color: var(--text-secondary) !important;
         }
+
+        /* ========== ADDITIONAL PURPLE/BLUE TO GREEN OVERRIDES ========== */
+        
+        /* Override any purple/blue headings and text to green */
+        h1, h2, h3, h4, h5, h6 {
+            color: #10B981 !important;
+        }
+
+        /* Specific text elements that might still be purple/blue */
+        .text-primary,
+        .text-info {
+            color: #10B981 !important;
+        }
+
+        /* Target specific purple/blue text by common patterns */
+        *[style*="color: #4F80FF"],
+        *[style*="color: #7B68EE"],
+        *[style*="color: #6366F1"],
+        *[style*="color: #8B5CF6"],
+        *[style*="color: blue"],
+        *[style*="color: purple"] {
+            color: #10B981 !important;
+        }
+
+        /* Target any remaining gradient text that's blue/purple */
+        .text-gradient,
+        .text-gradient-primary,
+        .text-gradient-info {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+
+        /* Override any blue/purple CSS classes */
+        .blue-text,
+        .purple-text,
+        .primary-text {
+            color: #10B981 !important;
+        }
+
+        /* Target headings with specific classes */
+        .card-title,
+        .page-title,
+        .section-title,
+        .competition-title {
+            color: #10B981 !important;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+
+        /* Override any inline styles for common headings */
+        h1[style],
+        h2[style],
+        h3[style],
+        h4[style] {
+            color: #10B981 !important;
+        }
+
+        /* Target step indicators and process text */
+        .step-title,
+        .process-title,
+        .instruction-title {
+            color: #10B981 !important;
+        }
+
+        /* Make sure all cards have darker backgrounds */
+        .card,
+        .modern-card,
+        .glass-card {
+            background: rgba(20, 20, 20, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* Darker top bar */
+        .top-bar {
+            background: rgba(20, 20, 20, 0.95) !important;
+        }
+
+        /* Override any remaining blue/purple backgrounds */
+        .bg-primary {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        }
+
+        .bg-info {
+            background: rgba(16, 185, 129, 0.1) !important;
+        }
+
+        /* Override any SVG or icon colors that are blue/purple */
+        .material-symbols-outlined.text-primary,
+        .material-symbols-outlined.text-info {
+            color: #10B981 !important;
+        }
+
+        /* Target any remaining blue elements by attribute */
+        [color="blue"],
+        [color="purple"],
+        [color="#4F80FF"],
+        [color="#7B68EE"] {
+            color: #10B981 !important;
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -960,6 +1063,90 @@
                 card.addEventListener('mouseleave', function() {
                     this.style.transform = 'translateY(0)';
                 });
+            });
+
+            // ========== DYNAMIC COLOR CONVERSION TO GREEN ==========
+            
+            // Function to convert purple/blue colors to green
+            function convertColorsToGreen() {
+                // Colors to replace (purple/blue variants)
+                const colorsToReplace = [
+                    '#4F80FF', '#7B68EE', '#6366F1', '#8B5CF6', 
+                    '#4f80ff', '#7b68ee', '#6366f1', '#8b5cf6',
+                    'rgb(79, 128, 255)', 'rgb(123, 104, 238)', 
+                    'rgb(99, 102, 241)', 'rgb(139, 92, 246)',
+                    'blue', 'purple', 'mediumslateblue', 'slateblue'
+                ];
+                
+                // Green replacement color
+                const greenColor = '#10B981';
+                
+                // Find all elements with text content
+                const allElements = document.querySelectorAll('*');
+                
+                allElements.forEach(element => {
+                    // Check computed styles
+                    const computedStyle = window.getComputedStyle(element);
+                    const color = computedStyle.color;
+                    
+                    // Replace if it's a blue/purple color
+                    colorsToReplace.forEach(oldColor => {
+                        if (color.toLowerCase().includes(oldColor.toLowerCase()) || 
+                            element.style.color?.toLowerCase().includes(oldColor.toLowerCase())) {
+                            element.style.color = greenColor + ' !important';
+                        }
+                    });
+                    
+                    // Check for gradient backgrounds and text
+                    if (computedStyle.backgroundImage?.includes('linear-gradient')) {
+                        const bgImage = computedStyle.backgroundImage;
+                        colorsToReplace.forEach(oldColor => {
+                            if (bgImage.includes(oldColor)) {
+                                element.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                                element.style.webkitBackgroundClip = 'text';
+                                element.style.webkitTextFillColor = 'transparent';
+                                element.style.backgroundClip = 'text';
+                            }
+                        });
+                    }
+                });
+                
+                // Specific targeting for common elements
+                const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                headings.forEach(heading => {
+                    if (!heading.style.color || heading.style.color.includes('blue') || heading.style.color.includes('purple')) {
+                        heading.style.color = greenColor + ' !important';
+                    }
+                });
+                
+                // Target elements with specific text content patterns
+                const elementsWithText = document.querySelectorAll('[class*="title"], [class*="heading"], [class*="primary"]');
+                elementsWithText.forEach(element => {
+                    element.style.color = greenColor + ' !important';
+                });
+            }
+            
+            // Run the conversion function
+            convertColorsToGreen();
+            
+            // Also run it when new content is loaded (for dynamic content)
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        setTimeout(convertColorsToGreen, 100); // Small delay to ensure elements are rendered
+                    }
+                });
+            });
+            
+            // Start observing
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            // Force update on page interactions
+            document.addEventListener('click', function() {
+                setTimeout(convertColorsToGreen, 50);
             });
         });
 
