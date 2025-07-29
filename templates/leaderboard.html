@@ -241,7 +241,7 @@ function refreshLeaderboard() {
 // Auto-refresh every 5 minutes
 setInterval(refreshLeaderboard, 300000);
 
-// Add custom styles for modern GREEN theme
+// Add custom styles for modern GREEN theme with transparent backgrounds
 document.addEventListener('DOMContentLoaded', function() {
     const style = document.createElement('style');
     style.textContent = `
@@ -256,17 +256,51 @@ document.addEventListener('DOMContentLoaded', function() {
         .podium-card:hover {
             transform: scale(1.05) !important;
         }
+        
+        /* UPDATED: Transparent backgrounds with green separators */
         .table-warning {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%) !important;
-            border-left: 3px solid #10B981 !important;
+            background: transparent !important;
+            border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important;
+            border-left: none !important;
         }
         .table-warning:hover {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.3) 100%) !important;
-            transform: translateY(-1px);
+            background: rgba(16, 185, 129, 0.05) !important;
+            border-bottom: 2px solid rgba(16, 185, 129, 0.5) !important;
+            transform: none !important;
+        }
+        
+        /* Table rows styling */
+        .table tbody tr {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.2) !important;
             transition: all 0.2s ease;
         }
+        .table tbody tr:hover {
+            background: rgba(16, 185, 129, 0.05) !important;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.4) !important;
+        }
+        
+        /* Current user row */
         .table-info {
-            background-color: rgba(16, 185, 129, 0.1) !important;
+            background: rgba(16, 185, 129, 0.08) !important;
+            border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
+        }
+        .table-info:hover {
+            background: rgba(16, 185, 129, 0.12) !important;
+        }
+        
+        /* Top 3 rows get more prominent borders */
+        .table tbody tr:nth-child(1) {
+            border-bottom: 2px solid rgba(16, 185, 129, 0.5) !important;
+        }
+        .table tbody tr:nth-child(1) td:first-child {
+            border-left: 4px solid #10B981 !important;
+        }
+        .table tbody tr:nth-child(2) td:first-child {
+            border-left: 3px solid rgba(16, 185, 129, 0.7) !important;
+        }
+        .table tbody tr:nth-child(3) td:first-child {
+            border-left: 3px solid rgba(16, 185, 129, 0.6) !important;
         }
     `;
     document.head.appendChild(style);
