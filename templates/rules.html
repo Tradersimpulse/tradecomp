@@ -3,6 +3,25 @@
 {% block title %}Rules - Trading Competition{% endblock %}
 
 {% block content %}
+<!-- Prize Amount Banner (if available) -->
+{% if settings and settings.prize_amount %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card prize-banner">
+            <div class="card-body text-center py-4">
+                <div class="prize-amount-display">
+                    <span class="material-symbols-outlined me-2" style="font-size: 3rem;">emoji_events</span>
+                    <div class="prize-text">
+                        <h1 class="prize-amount">${{ "%.0f"|format(settings.prize_amount) }}</h1>
+                        <p class="prize-subtitle">PRIZE POOL</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Page Header -->
 <div class="row mb-4">
     <div class="col-12">
@@ -31,11 +50,64 @@
                 </h3>
             </div>
             <div class="card-body">
-                <!-- Step 1 -->
+                <!-- Step 1 - Conditional Content -->
                 <div class="step-card mb-4">
                     <div class="d-flex align-items-start">
                         <div class="step-number">
                             <span class="badge bg-gradient-primary fs-5">1</span>
+                        </div>
+                        <div class="step-content">
+                            {% if is_authenticated %}
+                                <h5 class="text-white mb-3">Sign up for PlexyTrade</h5>
+                                <div class="alert alert-warning mb-3">
+                                    <span class="material-symbols-outlined me-2">warning</span>
+                                    <strong>IMPORTANT:</strong> You MUST register an account with the link below to ensure all traders have the same market environments. If you don't follow this step you will not be entered.
+                                </div>
+                                
+                                <div class="row justify-content-center">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="broker-card">
+                                            <a href="{{ settings.referral_link if settings and settings.referral_link else 'https://plexytrade.com/?t=TBZp1B&term=register' }}" target="_blank" class="btn btn-primary w-100">
+                                                <span class="material-symbols-outlined me-2">open_in_new</span>
+                                                Register at PlexyTrade
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <h5 class="text-white mb-3">Create an Account on This App</h5>
+                                <p style="color: #E5E7EB !important;" class="mb-3">
+                                    First, you need to create an account on our trading competition platform to track your progress and participate.
+                                </p>
+                                
+                                <div class="row justify-content-center">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="broker-card">
+                                            <a href="{{ url_for('signup') }}" class="btn btn-success w-100 btn-lg">
+                                                <span class="material-symbols-outlined me-2">person_add</span>
+                                                Sign Up Now
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <p style="color: #E5E7EB !important;">
+                                        Already have an account? 
+                                        <a href="{{ url_for('login') }}" class="text-primary">Login here</a>
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 - Only show for authenticated users -->
+                {% if is_authenticated %}
+                <div class="step-card mb-4">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">2</span>
                         </div>
                         <div class="step-content">
                             <h5 class="text-white mb-3">Sign up for PlexyTrade</h5>
@@ -58,11 +130,11 @@
                     </div>
                 </div>
 
-                <!-- Step 2 -->
+                <!-- Step 3 -->
                 <div class="step-card mb-4">
                     <div class="d-flex align-items-start">
                         <div class="step-number">
-                            <span class="badge bg-gradient-primary fs-5">2</span>
+                            <span class="badge bg-gradient-primary fs-5">3</span>
                         </div>
                         <div class="step-content">
                             <h5 class="text-white mb-3">Choose to create Live account</h5>
@@ -74,21 +146,6 @@
                     </div>
                 </div>
 
-                <!-- Step 3 -->
-                <div class="step-card mb-4">
-                    <div class="d-flex align-items-start">
-                        <div class="step-number">
-                            <span class="badge bg-gradient-primary fs-5">3</span>
-                        </div>
-                        <div class="step-content">
-                            <h5 class="text-white mb-3">Choose either MT5 or Tradelocker</h5>
-                            <p style="color: #E5E7EB !important;">
-                                Select your preferred trading platform when setting up your account.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Step 4 -->
                 <div class="step-card mb-4">
                     <div class="d-flex align-items-start">
@@ -96,11 +153,10 @@
                             <span class="badge bg-gradient-primary fs-5">4</span>
                         </div>
                         <div class="step-content">
-                            <h5 class="text-white mb-3">Fund the account with a MINIMUM of $100</h5>
-                            <div class="funding-highlight">
-                                <span class="material-symbols-outlined me-2 text-success" style="font-size: 24px;">attach_money</span>
-                                <span class="text-success fs-4 fw-bold">$100 MINIMUM DEPOSIT REQUIRED</span>
-                            </div>
+                            <h5 class="text-white mb-3">Choose either MT5 or Tradelocker</h5>
+                            <p style="color: #E5E7EB !important;">
+                                Select your preferred trading platform when setting up your account.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -112,6 +168,22 @@
                             <span class="badge bg-gradient-primary fs-5">5</span>
                         </div>
                         <div class="step-content">
+                            <h5 class="text-white mb-3">Fund the account with a MINIMUM of $100</h5>
+                            <div class="funding-highlight">
+                                <span class="material-symbols-outlined me-2 text-success" style="font-size: 24px;">attach_money</span>
+                                <span class="text-success fs-4 fw-bold">$100 MINIMUM DEPOSIT REQUIRED</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="step-card mb-4">
+                    <div class="d-flex align-items-start">
+                        <div class="step-number">
+                            <span class="badge bg-gradient-primary fs-5">6</span>
+                        </div>
+                        <div class="step-content">
                             <h5 class="text-white mb-3">Enter your account info on the account page of this website</h5>
                             <a href="{{ url_for('accounts') }}" class="btn btn-success btn-lg">
                                 <span class="material-symbols-outlined me-2">account_balance</span>
@@ -121,11 +193,11 @@
                     </div>
                 </div>
 
-                <!-- Step 6 -->
+                <!-- Step 7 -->
                 <div class="step-card">
                     <div class="d-flex align-items-start">
                         <div class="step-number">
-                            <span class="badge bg-gradient-primary fs-5">6</span>
+                            <span class="badge bg-gradient-primary fs-5">7</span>
                         </div>
                         <div class="step-content">
                             <h5 class="text-white mb-3">Start trading!</h5>
@@ -136,12 +208,14 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Additional Rules -->
+<!-- Additional Rules - Only show for authenticated users -->
+{% if is_authenticated %}
 <div class="row">
     <div class="col-md-6 mb-4">
         <div class="card">
@@ -179,6 +253,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Competition Requirements -->
 <div class="row mb-4">
@@ -249,7 +324,8 @@
     </div>
 </div>
 
-<!-- Quick Actions -->
+<!-- Quick Actions - Only show for authenticated users -->
+{% if is_authenticated %}
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -273,6 +349,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -329,6 +406,44 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Prize Banner Styles */
+.prize-banner {
+    background: linear-gradient(135deg, #F59E0B 0%, #EAB308 100%);
+    border: none;
+    box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3);
+}
+
+.prize-amount-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.prize-amount {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    margin: 0;
+    line-height: 1;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.prize-subtitle {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.prize-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 /* Step Cards */
 .step-card {
     padding: 2rem;
@@ -447,6 +562,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .prize-amount {
+        font-size: 2.5rem;
+    }
+    
+    .prize-amount-display {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
     .step-card {
         padding: 1.5rem;
     }
@@ -496,6 +620,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .card {
     animation: fadeInUp 0.6s ease-out;
+}
+
+/* Prize banner pulse animation */
+@keyframes prizePulse {
+    0%, 100% {
+        box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3);
+    }
+    50% {
+        box-shadow: 0 15px 50px rgba(245, 158, 11, 0.5);
+    }
+}
+
+.prize-banner {
+    animation: prizePulse 3s ease-in-out infinite;
 }
 </style>
 {% endblock %}
