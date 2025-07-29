@@ -279,9 +279,10 @@ def get_leaderboard_data():
 
 @app.route('/')
 def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+    # Show rules page as landing page when not logged in
+    if not current_user.is_authenticated:
+        return redirect(url_for('rules'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1246,7 +1247,8 @@ def rules():
     return render_template('rules.html',
                          prize_amount=prize_amount,
                          referral_link=referral_link,
-                         settings=settings)
+                         settings=settings,
+                         is_authenticated=current_user.is_authenticated)
     
 @app.route('/logout')
 @login_required
