@@ -147,15 +147,12 @@
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
         }
 
-        .sidebar-logo {
-            font-size: 1.25rem;
-            font-weight: 800;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .sidebar-logo-image {
+            height: 40px;
+            width: auto;
             transition: all 0.3s ease;
-            letter-spacing: -0.025em;
+            opacity: 1;
+            transform: scale(1);
         }
 
         .sidebar-logo-icon {
@@ -168,7 +165,7 @@
             transition: all 0.3s ease;
         }
 
-        .sidebar.collapsed .sidebar-logo {
+        .sidebar.collapsed .sidebar-logo-image {
             opacity: 0;
             transform: scale(0.8);
         }
@@ -953,7 +950,7 @@
 
         <!-- Header -->
         <div class="sidebar-header">
-            <div class="sidebar-logo">TRADING COMP</div>
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="TradeComp" class="sidebar-logo-image">
             <span class="material-symbols-outlined sidebar-logo-icon">trending_up</span>
         </div>
 
