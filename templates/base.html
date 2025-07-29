@@ -306,20 +306,9 @@
             margin-left: var(--sidebar-collapsed-width);
         }
 
-        /* Top bar */
+        /* Top bar - HIDDEN */
         .top-bar {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.5rem 2rem;
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-            z-index: 100;
-            backdrop-filter: blur(20px);
-            box-shadow: var(--shadow-sm);
+            display: none !important;
         }
 
         .page-title {
@@ -862,11 +851,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
 
-        /* Darker top bar */
-        .top-bar {
-            background: rgba(20, 20, 20, 0.95) !important;
-        }
-
         /* Override any remaining blue/purple backgrounds */
         .bg-primary {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
@@ -980,22 +964,6 @@
 
     <!-- Main content -->
     <main class="main-content" id="mainContent">
-        {% if current_user.is_authenticated %}
-        <!-- Top bar -->
-        <div class="top-bar">
-            <h1 class="page-title">
-                {% block page_title %}
-                    {% if request.endpoint == 'dashboard' %}Dashboard
-                    {% elif request.endpoint == 'leaderboard' %}Leaderboard
-                    {% elif request.endpoint == 'accounts' %}My Account
-                    {% elif request.endpoint == 'rules' %}Rules
-                    {% elif request.endpoint == 'admin' %}Admin Panel
-                    {% else %}Trading Competition{% endif %}
-                {% endblock %}
-            </h1>
-        </div>
-        {% endif %}
-
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
