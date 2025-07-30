@@ -90,10 +90,6 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Full Rankings</h5>
-                <button class="btn btn-outline-primary btn-sm" onclick="refreshLeaderboard()">
-                    <span class="material-symbols-outlined me-1">refresh</span>
-                    Refresh
-                </button>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -234,9 +230,6 @@
 
 {% block scripts %}
 <script>
-function refreshLeaderboard() {
-    location.reload();
-}
 
 // Auto-refresh every 5 minutes
 setInterval(refreshLeaderboard, 300000);
