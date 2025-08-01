@@ -14,7 +14,12 @@
                         {% if start_date and end_date %}
                         {{ start_date.strftime('%B %d') }} - {{ end_date.strftime('%B %d, %Y') }}
                         {% endif %}
-                        {% if settings and settings.prize_amount %}
+                        {% if competition_display %}
+                        <span class="ms-3">
+                            <span class="me-1">{{ competition_emoji }}</span>
+                            <strong class="text-warning">{{ competition_display }}</strong>
+                        </span>
+                        {% elif settings and settings.prize_amount %}
                         <span class="ms-3">
                             <span class="material-symbols-outlined me-1" style="font-size: 16px;">emoji_events</span>
                             <strong class="text-warning">${{ "%.0f"|format(settings.prize_amount) }} Prize!</strong>
@@ -153,6 +158,11 @@
                     Connect your trading account to participate in the competition. 
                     You'll be able to track your performance and compete for prizes.
                 </p>
+                {% if competition_display %}
+                <div class="alert alert-warning mb-4">
+                    <strong>{{ competition_emoji }} {{ competition_display }}</strong>
+                </div>
+                {% endif %}
                 <a href="{{ url_for('accounts') }}" class="btn btn-primary btn-lg">
                     <span class="material-symbols-outlined me-2">add</span>
                     Add Trading Account
@@ -164,6 +174,27 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4">
+        <!-- Competition Info Card -->
+        {% if competition_display %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <span class="material-symbols-outlined me-2">emoji_events</span>
+                    Competition Prize
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">{{ competition_emoji }}</div>
+                <h4 class="text-warning mb-2">{{ competition_display }}</h4>
+                {% if settings and settings.competition_type == 'top_3' %}
+                <small class="text-muted">Prize will be split among top 3 performers</small>
+                {% else %}
+                <small class="text-muted">Winner gets the entire prize</small>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Quick Stats -->
         <div class="card mb-4">
             <div class="card-header">
@@ -360,6 +391,12 @@ document.addEventListener('DOMContentLoaded', function() {
 .alert-secondary {
     background: rgba(108, 117, 125, 0.1);
     color: #6c757d;
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 </style>
 {% endblock %}
