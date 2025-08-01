@@ -13,13 +13,22 @@
                         <h3 class="text-gradient-primary mb-2">
                             <span class="material-symbols-outlined me-2">leaderboard</span>
                             Competition Leaderboard
-                            {% if settings and settings.prize_amount %}
-                                <span class="badge bg-gradient-warning fs-6 ms-2">
-                                    <span class="material-symbols-outlined me-1" style="font-size: 16px;">emoji_events</span>
-                                    ${{ "%.0f"|format(settings.prize_amount) }} Prize
-                                </span>
-                            {% endif %}
                         </h3>
+                        {% if competition_display %}
+                        <div class="mb-2">
+                            <span class="badge bg-gradient-warning fs-6">
+                                <span class="me-1">{{ competition_emoji }}</span>
+                                {{ competition_display }}
+                            </span>
+                        </div>
+                        {% elif settings and settings.prize_amount %}
+                        <div class="mb-2">
+                            <span class="badge bg-gradient-warning fs-6">
+                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">emoji_events</span>
+                                ${{ "%.0f"|format(settings.prize_amount) }} Prize
+                            </span>
+                        </div>
+                        {% endif %}
                         {% if start_date and end_date %}
                         <p class="mb-0" style="color: #E5E7EB !important;">
                             Competition Period: {{ start_date.strftime('%B %d') }} - {{ end_date.strftime('%B %d, %Y') }}
@@ -46,7 +55,18 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="text-center mb-4">🏆 Top Performers 🏆</h5>
+                <h5 class="text-center mb-3">
+                    {% if settings and settings.competition_type == 'top_3' %}
+                        🥇🥈🥉 Prize Winners 🥇🥈🥉
+                    {% else %}
+                        🏆 Top Performers 🏆
+                    {% endif %}
+                </h5>
+                {% if settings and settings.competition_type == 'top_3' and settings.prize_amount %}
+                <p class="text-center text-muted mb-4">
+                    Prize will be distributed among top 3 traders
+                </p>
+                {% endif %}
                 <div class="row justify-content-center">
                     <!-- 2nd Place -->
                     <div class="col-md-4 text-center mb-3">
@@ -55,16 +75,30 @@
                             <h5 class="text-white mb-1">{{ top_three[1].username }}</h5>
                             <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[1].percentage_change) }}%</h4>
                             <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[1].profit) }} profit</small>
+                            {% if settings and settings.competition_type == 'top_3' %}
+                            <div class="mt-2">
+                                <span class="badge bg-light text-dark">Prize Winner</span>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                     
                     <!-- 1st Place -->
                     <div class="col-md-4 text-center mb-3">
                         <div class="podium-card" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 2rem; border-radius: 16px; transform: scale(1.1);">
-                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👑</div>
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">
+                                {% if settings and settings.competition_type == 'top_3' %}🥇{% else %}👑{% endif %}
+                            </div>
                             <h4 class="text-white mb-1">{{ top_three[0].username }}</h4>
                             <h3 class="text-white mb-0">+{{ "%.2f"|format(top_three[0].percentage_change) }}%</h3>
                             <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[0].profit) }} profit</small>
+                            <div class="mt-2">
+                                {% if settings and settings.competition_type == 'top_3' %}
+                                <span class="badge bg-light text-dark">1st Place Winner</span>
+                                {% else %}
+                                <span class="badge bg-light text-dark">Grand Prize Winner</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     
@@ -75,6 +109,11 @@
                             <h5 class="text-white mb-1">{{ top_three[2].username }}</h5>
                             <h4 class="text-white mb-0">+{{ "%.2f"|format(top_three[2].percentage_change) }}%</h4>
                             <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[2].profit) }} profit</small>
+                            {% if settings and settings.competition_type == 'top_3' %}
+                            <div class="mt-2">
+                                <span class="badge bg-light text-dark">Prize Winner</span>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -89,7 +128,14 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Full Rankings</h5>
+                <h5 class="mb-0">
+                    Full Rankings
+                    {% if settings and settings.competition_type == 'top_3' %}
+                    <span class="badge bg-info ms-2">Top 3 Win Prizes</span>
+                    {% else %}
+                    <span class="badge bg-warning ms-2">Winner Takes All</span>
+                    {% endif %}
+                </h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -111,13 +157,20 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         {% if trader.rank == 1 %}
-                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">👑</span>
+                                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">
+                                                {% if settings and settings.competition_type == 'top_3' %}🥇{% else %}👑{% endif %}
+                                            </span>
                                         {% elif trader.rank == 2 %}
                                             <span style="font-size: 1.2rem; margin-right: 0.5rem;">🥈</span>
                                         {% elif trader.rank == 3 %}
                                             <span style="font-size: 1.2rem; margin-right: 0.5rem;">🥉</span>
                                         {% endif %}
                                         <strong>#{{ trader.rank }}</strong>
+                                        {% if settings and settings.competition_type == 'top_3' and trader.rank <= 3 %}
+                                        <span class="badge bg-success ms-2" style="font-size: 0.65rem;">PRIZE</span>
+                                        {% elif settings and settings.competition_type == 'winner_takes_all' and trader.rank == 1 %}
+                                        <span class="badge bg-warning ms-2" style="font-size: 0.65rem;">WINNER</span>
+                                        {% endif %}
                                     </div>
                                 </td>
                                 <td>
@@ -199,10 +252,17 @@
     <div class="col-md-3 mb-3">
         <div class="card text-center">
             <div class="card-body">
-                {% set profitable_traders = leaderboard | selectattr('profit', '>', 0) | list | length %}
-                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">pie_chart</span>
-                <h5 style="color: #E5E7EB !important;" class="mb-1">Profitable Traders</h5>
-                <h3 class="positive mb-0">{{ profitable_traders }}/{{ leaderboard|length }}</h3>
+                {% if settings and settings.competition_type == 'top_3' %}
+                    {% set prize_winners = 3 if leaderboard|length >= 3 else leaderboard|length %}
+                    <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">emoji_events</span>
+                    <h5 style="color: #E5E7EB !important;" class="mb-1">Prize Winners</h5>
+                    <h3 class="positive mb-0">{{ prize_winners }}</h3>
+                {% else %}
+                    {% set profitable_traders = leaderboard | selectattr('profit', '>', 0) | list | length %}
+                    <span class="material-symbols-outlined text-primary mb-2" style="font-size: 32px;">pie_chart</span>
+                    <h5 style="color: #E5E7EB !important;" class="mb-1">Profitable Traders</h5>
+                    <h3 class="positive mb-0">{{ profitable_traders }}/{{ leaderboard|length }}</h3>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -214,9 +274,14 @@
     <div class="col-md-6">
         <div class="card text-center">
             <div class="card-body py-5">
-                <span class="material-symbols-outlined mb-3" style="font-size: 64px; color: #E5E7EB;">leaderboard</span>
+                <span class="material-symbols-outlined text-muted mb-3" style="font-size: 64px;">leaderboard</span>
                 <h3 style="color: #E5E7EB !important;" class="mb-3">No Participants Yet</h3>
                 <p style="color: #D1D5DB !important;" class="mb-4">Be the first to join the trading competition!</p>
+                {% if competition_display %}
+                <div class="alert alert-warning mb-4">
+                    <strong>{{ competition_emoji }} {{ competition_display }}</strong>
+                </div>
+                {% endif %}
                 <a href="{{ url_for('accounts') }}" class="btn btn-primary">
                     <span class="material-symbols-outlined me-2">add</span>
                     Join Competition
