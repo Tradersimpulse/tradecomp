@@ -163,7 +163,7 @@ def get_competition_dates():
     return None, None
 
 def get_competition_settings():
-    """Get all competition settings from database"""
+    """Get all competition settings from database including webhook settings"""
     try:
         conn = get_connection()
         if not conn:
@@ -178,6 +178,76 @@ def get_competition_settings():
         return result
     except Exception as e:
         logger.error(f"Error getting competition settings: {e}")
+        return None
+
+def send_discord_webhook(webhook_url, message):
+    """Send a message to Discord webhook"""
+    try:
+        payload = {
+            "content": message
+        }
+        
+        response = requests.post(
+            webhook_url,
+            json=payload,
+            headers={'Content-Type': 'application/json'},
+            timeout=10
+        )
+        
+        if response.status_code == 204:
+            logger.info("Discord webhook sent successfully")
+            return True
+        else:
+            logger.error(f"Discord webhook failed: {response.status_code} - {response.text}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error sending Discord webhook: {e}")
+        return False
+
+def format_competition_message():
+    """Format the competition standings message for Discord"""
+    try:
+        # Get competition settings for emoji and site URL
+        settings = get_competition_settings()
+        
+        # Get top 3 from leaderboard
+        leaderboard = get_leaderboard_data()
+        
+        if not leaderboard:
+            return None
+        
+        # Determine emoji based on competition type
+        if settings and settings.get('competition_type') == 'top_3':
+            title_emoji = "🥇🥈🥉"
+        else:
+            title_emoji = "👑"
+        
+        # Build message
+        message_lines = [
+            f"Trade Comp Standings **{title_emoji}**",
+            ""  # Empty line for spacing
+        ]
+        
+        # Add top 3 (or fewer if less than 3 participants)
+        medal_emojis = ["🥇", "🥈", "🥉"]
+        top_3 = leaderboard[:3]
+        
+        for i, trader in enumerate(top_3):
+            emoji = medal_emojis[i] if i < len(medal_emojis) else f"{i+1}."
+            percentage = f"+{trader['percentage_change']:.1f}%" if trader['percentage_change'] >= 0 else f"{trader['percentage_change']:.1f}%"
+            message_lines.append(f"{emoji} {trader['username']} ({percentage})")
+        
+        # Add spacing and call to action
+        message_lines.extend([
+            "",  # Empty line
+            "Join the competition - https://tradecomp.pro"
+        ])
+        
+        return "\n".join(message_lines)
+        
+    except Exception as e:
+        logger.error(f"Error formatting competition message: {e}")
         return None
 
 
@@ -835,6 +905,106 @@ def handle_set_default_account():
         flash('Error setting default account', 'error')
     
     return redirect(url_for('accounts'))
+
+@app.route('/admin/update_webhook_settings', methods=['POST'])
+@login_required
+def update_webhook_settings():
+    if not current_user.is_admin:
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        webhook_url = request.form.get('webhook_url', '').strip()
+        webhook_enabled = request.form.get('webhook_enabled') == 'on'
+        
+        # Validate webhook URL if provided
+        if webhook_url and not webhook_url.startswith('https://discord.com/api/webhooks/'):
+            flash('Invalid Discord webhook URL format', 'error')
+            return redirect(url_for('admin'))
+        
+        conn = get_connection()
+        if not conn:
+            flash('Database connection error', 'error')
+            return redirect(url_for('admin'))
+        
+        cursor = conn.cursor()
+        
+        # Check if settings record exists
+        cursor.execute("SELECT id FROM competition_settings WHERE id = 1")
+        if cursor.fetchone():
+            # Update existing record
+            cursor.execute("""
+                UPDATE competition_settings 
+                SET webhook_url = %s, webhook_enabled = %s 
+                WHERE id = 1
+            """, (webhook_url if webhook_url else None, webhook_enabled))
+        else:
+            # Insert new record
+            cursor.execute("""
+                INSERT INTO competition_settings (id, webhook_url, webhook_enabled) 
+                VALUES (1, %s, %s)
+            """, (webhook_url if webhook_url else None, webhook_enabled))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        if webhook_enabled and webhook_url:
+            flash('Webhook settings updated! Remember to set up the scheduled script on PythonAnywhere.', 'success')
+        else:
+            flash('Webhook settings updated!', 'success')
+            
+    except Exception as e:
+        logger.error(f"Webhook settings update error: {e}")
+        flash('Error updating webhook settings', 'error')
+    
+    return redirect(url_for('admin'))
+
+@app.route('/admin/test_webhook', methods=['POST'])
+@login_required
+def test_webhook():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Access denied'})
+    
+    try:
+        data = request.get_json()
+        webhook_url = data.get('webhook_url', '').strip()
+        
+        if not webhook_url:
+            return jsonify({'success': False, 'error': 'Webhook URL is required'})
+        
+        if not webhook_url.startswith('https://discord.com/api/webhooks/'):
+            return jsonify({'success': False, 'error': 'Invalid Discord webhook URL format'})
+        
+        # Format test message
+        message = format_competition_message()
+        
+        if not message:
+            # Create a sample message if no data available
+            settings = get_competition_settings()
+            title_emoji = "🥇🥈🥉" if settings and settings.get('competition_type') == 'top_3' else "👑"
+            
+            message = f"""Trade Comp Standings **{title_emoji}**
+
+🥇 Rvernonmedia (+12.5%)
+🥈 Jwill24 (+8.3%)
+🥉 Aaron12 (+6.7%)
+
+Join the competition - https://tradecomp.pro
+
+*This is a test message*"""
+        
+        # Send webhook
+        success = send_discord_webhook(webhook_url, message)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Test webhook sent successfully!'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to send webhook. Check URL and Discord server permissions.'})
+            
+    except Exception as e:
+        logger.error(f"Test webhook error: {e}")
+        return jsonify({'success': False, 'error': f'Error: {str(e)}'})
 
 @app.route('/remove_account', methods=['POST'])
 @login_required
