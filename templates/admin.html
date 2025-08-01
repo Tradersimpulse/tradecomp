@@ -27,17 +27,54 @@
                                    value="{{ settings.end_date.strftime('%Y-%m-%d') if settings and settings.end_date else '' }}" required>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="referral_link" class="form-label">Broker Referral Link</label>
-                            <input type="url" class="form-control" id="referral_link" name="referral_link" 
-                                   value="{{ settings.referral_link if settings else '' }}" placeholder="https://broker.com/signup">
-                        </div>
-                        <div class="col-md-3 mb-3">
                             <label for="prize_amount" class="form-label">Prize Amount ($)</label>
                             <input type="number" class="form-control" id="prize_amount" name="prize_amount" 
                                    value="{{ settings.prize_amount if settings and settings.prize_amount else '' }}" 
                                    placeholder="5000" min="0" step="0.01">
                         </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="competition_type" class="form-label">Competition Type</label>
+                            <select class="form-control" id="competition_type" name="competition_type" required>
+                                <option value="winner_takes_all" 
+                                    {% if settings and settings.competition_type == 'winner_takes_all' %}selected{% endif %}>
+                                    Winner Takes All
+                                </option>
+                                <option value="top_3" 
+                                    {% if settings and settings.competition_type == 'top_3' %}selected{% endif %}>
+                                    Top 3 Traders Win
+                                </option>
+                            </select>
+                        </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="referral_link" class="form-label">Broker Referral Link</label>
+                            <input type="url" class="form-control" id="referral_link" name="referral_link" 
+                                   value="{{ settings.referral_link if settings else '' }}" placeholder="https://broker.com/signup">
+                        </div>
+                    </div>
+                    
+                    <!-- Competition Type Preview -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="alert alert-info" id="competition-preview">
+                                <strong>Preview:</strong> 
+                                <span id="preview-text">
+                                    {% if settings and settings.prize_amount and settings.competition_type %}
+                                        ${{ "%.0f"|format(settings.prize_amount) }} Prize! - 
+                                        {% if settings.competition_type == 'winner_takes_all' %}
+                                            Winner Takes All
+                                        {% else %}
+                                            Top 3 Traders Win
+                                        {% endif %}
+                                    {% else %}
+                                        Set prize amount and competition type to see preview
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">
                         <span class="material-symbols-outlined me-1">save</span>
                         Update Settings
@@ -47,6 +84,132 @@
         </div>
     </div>
 </div>
+
+<!-- Discord Webhook Settings -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="text-gradient-primary mb-0">
+                    <span class="material-symbols-outlined me-2">webhook</span>
+                    Discord Integration
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_webhook_settings') }}">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="webhook_url" class="form-label">Discord Webhook URL</label>
+                            <input type="url" class="form-control" id="webhook_url" name="webhook_url" 
+                                   value="{{ settings.webhook_url if settings and settings.webhook_url else '' }}" 
+                                   placeholder="https://discord.com/api/webhooks/...">
+                            <small class="text-muted">Get this from your Discord server settings → Integrations → Webhooks</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="webhook_enabled" class="form-label">Enable Auto-Updates</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="webhook_enabled" name="webhook_enabled" 
+                                       {% if settings and settings.webhook_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="webhook_enabled">
+                                    Enable Discord updates
+                                </label>
+                            </div>
+                            <small class="text-muted">Updates sent by scheduled script</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Webhook Preview -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="alert alert-secondary">
+                                <h6><strong>Message Preview:</strong></h6>
+                                <div id="webhook-preview" class="font-monospace">
+                                    <div>Trade Comp Standings 
+                                        <strong id="preview-emoji">
+                                            {% if settings and settings.competition_type == 'top_3' %}🥇🥈🥉{% else %}👑{% endif %}
+                                        </strong>
+                                    </div>
+                                    <br>
+                                    <div>🥇 Rvernonmedia (+12.5%)</div>
+                                    <div>🥈 Jwill24 (+8.3%)</div>
+                                    <div>🥉 Aaron12 (+6.7%)</div>
+                                    <br>
+                                    <div>Join the competition - https://tradecomp.pro</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined me-1">save</span>
+                            Update Webhook Settings
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="testWebhook()">
+                            <span class="material-symbols-outlined me-1">send</span>
+                            Test Webhook
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Webhook Status Card -->
+{% if settings and settings.webhook_url %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <span class="material-symbols-outlined me-2">notifications</span>
+                    Discord Integration Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-{{ 'success' if settings.webhook_enabled else 'secondary' }} me-2">
+                                {% if settings.webhook_enabled %}Enabled{% else %}Disabled{% endif %}
+                            </span>
+                            <span class="text-muted">Discord webhook status</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Webhook URL:</strong> 
+                            <span class="font-monospace">...{{ settings.webhook_url[-20:] if settings.webhook_url|length > 20 else settings.webhook_url }}</span>
+                        </small>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">
+                            <strong>Last Update:</strong> 
+                            {% if settings.last_webhook_time %}
+                                {{ settings.last_webhook_time.strftime('%m/%d %H:%M') }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                
+                {% if settings.webhook_enabled %}
+                <div class="mt-3">
+                    <div class="alert alert-info mb-0">
+                        <strong>📋 Setup Instructions:</strong><br>
+                        1. Upload <code>discord_webhook.py</code> to PythonAnywhere<br>
+                        2. Create a scheduled task to run every 15 minutes: <code>python3.10 /home/yourusername/discord_webhook.py</code><br>
+                        3. The script will automatically send updates when enabled
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Statistics Overview -->
 <div class="row mb-4">
@@ -228,24 +391,52 @@
 {% block scripts %}
 <script>
 function viewAccount(accountId) {
-    // Implement account details modal
     showToast('Account details feature coming soon', 'info');
 }
 
 function toggleAccount(accountId) {
-    // Implement account status toggle
     if (confirm('Are you sure you want to toggle the account status?')) {
         showToast('Account status toggle feature coming soon', 'info');
     }
 }
 
 function exportData() {
-    // Implement data export
     showToast('Export feature coming soon', 'info');
 }
 
 function refreshData() {
     location.reload();
+}
+
+function testWebhook() {
+    const webhookUrl = document.getElementById('webhook_url').value;
+    
+    if (!webhookUrl) {
+        showToast('Please enter a webhook URL first', 'error');
+        return;
+    }
+    
+    // Send test webhook
+    fetch('/admin/test_webhook', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            webhook_url: webhookUrl
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Test webhook sent successfully!', 'success');
+        } else {
+            showToast('Webhook test failed: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Error testing webhook: ' + error, 'error');
+    });
 }
 
 // Auto-refresh every 2 minutes
@@ -281,6 +472,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
         });
+    }
+});
+
+// Live preview updates
+document.addEventListener('DOMContentLoaded', function() {
+    const prizeAmount = document.getElementById('prize_amount');
+    const competitionType = document.getElementById('competition_type');
+    const previewText = document.getElementById('preview-text');
+    const previewEmoji = document.getElementById('preview-emoji');
+    
+    function updatePreview() {
+        const amount = prizeAmount.value;
+        const type = competitionType.value;
+        
+        if (amount && type) {
+            const typeText = type === 'winner_takes_all' ? 'Winner Takes All' : 'Top 3 Traders Win';
+            const emoji = type === 'winner_takes_all' ? '👑' : '🥇🥈🥉';
+            
+            previewText.innerHTML = `<strong>$${parseFloat(amount).toFixed(0)} Prize! - ${typeText}</strong>`;
+            if (previewEmoji) {
+                previewEmoji.innerHTML = emoji;
+            }
+        } else {
+            previewText.innerHTML = 'Set prize amount and competition type to see preview';
+        }
+    }
+    
+    if (prizeAmount && competitionType) {
+        prizeAmount.addEventListener('input', updatePreview);
+        competitionType.addEventListener('change', updatePreview);
     }
 });
 </script>
