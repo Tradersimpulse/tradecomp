@@ -8,6 +8,15 @@
     <div class="row mb-4">
         <div class="col-12 text-center">
             <h1 class="text-gradient-primary display-4 mb-3">Trading Competition 2025</h1>
+            
+            <!-- Competition Dates -->
+            {% if start_date and end_date %}
+            <p class="text-muted mb-3">
+                {{ start_date.strftime('%B %d') }} - {{ end_date.strftime('%B %d, %Y') }}
+            </p>
+            {% endif %}
+            
+            <!-- Competition Prize and Type Display -->
             {% if competition_display %}
             <div class="mb-4">
                 <div class="alert alert-warning d-inline-block">
@@ -37,6 +46,7 @@
             </div>
             {% endif %}
             
+            <!-- Action Buttons -->
             {% if not is_authenticated %}
             <p class="lead text-muted mb-4">
                 Join our trading competition and compete for cash prizes!
@@ -260,6 +270,11 @@
                 <div class="card-body py-5">
                     <h3 class="text-gradient-primary mb-3">Ready to Compete?</h3>
                     <p class="text-muted mb-4">Join the competition and start trading your way to victory!</p>
+                    {% if competition_display %}
+                    <div class="alert alert-warning d-inline-block mb-4">
+                        <strong>{{ competition_emoji }} {{ competition_display }}</strong>
+                    </div>
+                    {% endif %}
                     <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">
                         <span class="material-symbols-outlined me-2">rocket_launch</span>
                         Get Started Now
@@ -271,6 +286,11 @@
                 <div class="card-body py-5">
                     <h3 class="text-gradient-primary mb-3">You're Ready!</h3>
                     <p class="text-muted mb-4">Follow the steps above to set up your trading account and start competing.</p>
+                    {% if competition_display %}
+                    <div class="alert alert-warning d-inline-block mb-4">
+                        <strong>{{ competition_emoji }} {{ competition_display }}</strong>
+                    </div>
+                    {% endif %}
                     <a href="{{ url_for('accounts') }}" class="btn btn-primary btn-lg">
                         <span class="material-symbols-outlined me-2">account_balance</span>
                         Setup Trading Account
