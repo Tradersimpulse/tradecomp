@@ -1319,7 +1319,7 @@ def update_admin_settings():
         end_date = request.form.get('end_date')
         referral_link = request.form.get('referral_link')
         prize_amount = request.form.get('prize_amount')
-        competition_type = request.form.get('competition_type')
+        competition_type = request.form.get('competition_type')  # ADD THIS LINE
         
         # Convert prize_amount to float if provided, otherwise set to None
         if prize_amount and prize_amount.strip():
@@ -1341,18 +1341,18 @@ def update_admin_settings():
         # Check if settings record exists
         cursor.execute("SELECT id FROM competition_settings WHERE id = 1")
         if cursor.fetchone():
-            # Update existing record
+            # Update existing record - ADD competition_type to the UPDATE
             cursor.execute("""
                 UPDATE competition_settings 
-                SET start_date = %s, end_date = %s, referral_link = %s, prize_amount = %s 
+                SET start_date = %s, end_date = %s, referral_link = %s, prize_amount = %s, competition_type = %s 
                 WHERE id = 1
-            """, (start_date, end_date, referral_link, prize_amount))
+            """, (start_date, end_date, referral_link, prize_amount, competition_type))
         else:
-            # Insert new record
+            # Insert new record - ADD competition_type to the INSERT
             cursor.execute("""
-                INSERT INTO competition_settings (id, start_date, end_date, referral_link, prize_amount) 
-                VALUES (1, %s, %s, %s, %s)
-            """, (start_date, end_date, referral_link, prize_amount))
+                INSERT INTO competition_settings (id, start_date, end_date, referral_link, prize_amount, competition_type) 
+                VALUES (1, %s, %s, %s, %s, %s)
+            """, (start_date, end_date, referral_link, prize_amount, competition_type))
         
         conn.commit()
         cursor.close()
