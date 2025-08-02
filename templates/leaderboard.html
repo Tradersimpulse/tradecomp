@@ -94,9 +94,9 @@
                             <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[0].profit) }} profit</small>
                             <div class="mt-2">
                                 {% if settings and settings.competition_type == 'top_3' %}
-                                <span class="badge bg-light text-dark">1st Place</span>
+                                <span class="badge bg-light text-dark">1st Place Winner</span>
                                 {% else %}
-                                <span class="badge bg-light text-dark">2nd Place</span>
+                                <span class="badge bg-light text-dark">Grand Prize Winner</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -111,7 +111,7 @@
                             <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[2].profit) }} profit</small>
                             {% if settings and settings.competition_type == 'top_3' %}
                             <div class="mt-2">
-                                <span class="badge bg-light text-dark">3rd Place</span>
+                                <span class="badge bg-light text-dark">Prize Winner</span>
                             </div>
                             {% endif %}
                         </div>
@@ -166,11 +166,6 @@
                                             <span style="font-size: 1.2rem; margin-right: 0.5rem;">🥉</span>
                                         {% endif %}
                                         <strong>#{{ trader.rank }}</strong>
-                                        {% if settings and settings.competition_type == 'top_3' and trader.rank <= 3 %}
-                                        <span class="badge bg-success ms-2" style="font-size: 0.65rem;">PRIZE</span>
-                                        {% elif settings and settings.competition_type == 'winner_takes_all' and trader.rank == 1 %}
-                                        <span class="badge bg-warning ms-2" style="font-size: 0.65rem;">WINNER</span>
-                                        {% endif %}
                                     </div>
                                 </td>
                                 <td>
