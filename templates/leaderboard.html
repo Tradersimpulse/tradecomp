@@ -94,9 +94,9 @@
                             <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[0].profit) }} profit</small>
                             <div class="mt-2">
                                 {% if settings and settings.competition_type == 'top_3' %}
-                                <span class="badge bg-light text-dark">1st Place Winner</span>
+                                <span class="badge bg-light text-dark">1st Place</span>
                                 {% else %}
-                                <span class="badge bg-light text-dark">Grand Prize Winner</span>
+                                <span class="badge bg-light text-dark">2nd Place</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -111,7 +111,7 @@
                             <small style="color: rgba(255, 255, 255, 0.8) !important;">${{ "%.2f"|format(top_three[2].profit) }} profit</small>
                             {% if settings and settings.competition_type == 'top_3' %}
                             <div class="mt-2">
-                                <span class="badge bg-light text-dark">Prize Winner</span>
+                                <span class="badge bg-light text-dark">3rd Place</span>
                             </div>
                             {% endif %}
                         </div>
