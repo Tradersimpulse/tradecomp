@@ -1319,6 +1319,7 @@ def update_admin_settings():
         end_date = request.form.get('end_date')
         referral_link = request.form.get('referral_link')
         prize_amount = request.form.get('prize_amount')
+        competition_type = request.form.get('competition_type')
         
         # Convert prize_amount to float if provided, otherwise set to None
         if prize_amount and prize_amount.strip():
